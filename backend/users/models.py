@@ -35,3 +35,17 @@ class Follow(models.Model):
         related_name='author',
         verbose_name='Автор'
     )
+
+    class Meta:
+        verbose_name = 'Подписка'
+        verbose_name_plural = 'Подписки'
+        constraints = [
+            models.CheckConstraint(
+                name='impossible_follow_self',
+                check=~models.Q(user=models.F('author')),
+            ),
+            models.UniqueConstraint(
+                fields=['user', 'author'],
+                name='selffollow'
+            )
+        ]
