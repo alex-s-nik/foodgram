@@ -28,9 +28,19 @@ class MeasurementUnit(models.Model):
 
 class Ingridient(models.Model):
     '''Ингридиент в рецепте'''
-    name = ...
-    measurement_unit = ...
-    amount = ...
+    name = models.CharField(
+        verbose_name='Название ингридиента',
+        max_length=64
+    )
+    measurement_unit = models.ForeignKey(
+        to=MeasurementUnit,
+        on_delete=models.CASCADE,
+        related_name='ingridients',
+        verbose_name='Единица измерения'
+    )
+    amount = models.PositiveSmallIntegerField(
+        verbose_name='Количество'
+    )
 
 
 class Recipe(models.Model):
