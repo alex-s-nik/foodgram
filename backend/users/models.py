@@ -15,6 +15,10 @@ class User(AbstractUser):
         related_name='users',
         verbose_name='Список покупок'
     )
+    
+    @property
+    def is_admin(self):
+        return self.is_superuser
 
 
 class Follow(models.Model):
