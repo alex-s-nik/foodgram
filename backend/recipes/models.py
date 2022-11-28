@@ -3,9 +3,18 @@ from django.db import models
 
 class Tag(models.Model):
     '''Тег для рецепта'''
-    name = ...
-    color = ...
-    slug = ...
+    name = models.CharField(
+        verbose_name='Название тега',
+        max_length=32
+    )
+    color = models.CharField(
+        verbose_name='Цвет ярлычка с тегом',
+        max_length=7
+    )
+    slug = models.SlugField(
+        verbose_name='Slug',
+        unique=True
+    )
 
 
 class MeasurementUnit(models.Model):
