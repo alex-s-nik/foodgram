@@ -19,7 +19,11 @@ class Tag(models.Model):
 
 class MeasurementUnit(models.Model):
     '''Единица измерения ингридиента'''
-    name = ...
+    name = models.CharField(
+        verbose_name='Название единицы измерения',
+        max_length=32,
+        unique=True
+    )
 
 
 class Ingridient(models.Model):
