@@ -1,19 +1,17 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
-from recipes.models import Recipe
-
 
 class User(AbstractUser):
     '''Пользователь системы'''
     favorites = models.ManyToManyField(
-        to=Recipe,
-        related_name='users',
+        to='recipes.Recipe',
+        related_name='favorite_users',
         verbose_name='Избранное'
     )
     shopping_cart = models.ManyToManyField(
-        to=Recipe,
-        related_name='users',
+        to='recipes.Recipe',
+        related_name='cart_users',
         verbose_name='Список покупок'
     )
 
