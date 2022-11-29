@@ -3,6 +3,7 @@ from django.db import models
 
 User = get_user_model()
 
+
 class Tag(models.Model):
     '''Тег для рецепта'''
     name = models.CharField(
