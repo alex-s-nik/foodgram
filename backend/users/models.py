@@ -1,5 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+
 from recipes.models import Recipe
 
 
@@ -15,7 +16,7 @@ class User(AbstractUser):
         related_name='users',
         verbose_name='Список покупок'
     )
-    
+
     @property
     def is_admin(self):
         return self.is_superuser
