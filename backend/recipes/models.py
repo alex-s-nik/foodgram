@@ -1,14 +1,15 @@
 from django.db import models
+from users.models import User
 
 
 class Tag(models.Model):
     '''Тег для рецепта'''
     name = models.CharField(
-        verbose_name='Название тега',
+        verbose_name='Название',
         max_length=32
     )
     color = models.CharField(
-        verbose_name='Цвет ярлычка с тегом',
+        verbose_name='Цвет ярлычка',
         max_length=7
     )
     slug = models.SlugField(
@@ -20,7 +21,7 @@ class Tag(models.Model):
 class MeasurementUnit(models.Model):
     '''Единица измерения ингридиента'''
     name = models.CharField(
-        verbose_name='Название единицы измерения',
+        verbose_name='Название',
         max_length=32,
         unique=True
     )
@@ -29,7 +30,7 @@ class MeasurementUnit(models.Model):
 class Ingridient(models.Model):
     '''Ингридиент в рецепте'''
     name = models.CharField(
-        verbose_name='Название ингридиента',
+        verbose_name='Название',
         max_length=64
     )
     measurement_unit = models.ForeignKey(
@@ -45,10 +46,34 @@ class Ingridient(models.Model):
 
 class Recipe(models.Model):
     '''Рецепт блюда'''
-    author = ...
-    name = ...
-    image = ...
-    text = ...
-    ingridients = ...
-    tags = ...
-    cooking_time = ...
+    author = models.ForeignKey(
+        to=User,
+        on_delete=models.CASCADE,
+        related_name='recipes',
+        verbose_name='Автор'
+    )
+    name = models.CharField(
+        max_length=200,
+        verbose_name='Название'
+    )
+    image = models.ImageField(
+        upload_to='img/',
+        verbose_name='Фото'
+    )
+    text = models.TextField(
+        max_length=1024,
+        verbose_name='Описание'
+    )
+    ingridients = models.ManyToManyField(
+        to=Ingridient,
+        related_name='recipes',
+        verbose_name='Ингридиенты'
+    )
+    tags = models.ManyToManyField(
+        to=Tag,
+        related_name='recipes',
+        verbose_name='Теги'
+    )
+    cooking_time = models.PositiveSmallIntegerField(
+        verbose_name='Время приготовления, мин'
+    )
