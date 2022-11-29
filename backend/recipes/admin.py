@@ -1,3 +1,8 @@
 from django.contrib import admin
 
-# Register your models here.
+from .models import Ingridient, MeasurementUnit, Recipe, Tag
+
+admin.site.register(Ingridient)
+admin.site.register(MeasurementUnit)
+admin.site.register(Recipe)
+admin.site.register(Tag)
