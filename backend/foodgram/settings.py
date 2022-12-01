@@ -138,3 +138,11 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'api.pagination.UserPageLimitPagination',
     'PAGE_SIZE': 100
 }
+
+DJOSER = {
+    'LOGIN_FIELD': 'email',
+    'SERIALIZERS': {
+        'user': 'api.serializers.UserSerializer',
+        'current_user': 'api.serializers.UserSerializer',
+    }
+}
