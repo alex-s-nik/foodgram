@@ -1,5 +1,7 @@
 from djoser.views import UserViewSet as BaseUserViewSet
 
+from .pagination import UserPageLimitPagination
+
 
 class UserViewSet(BaseUserViewSet):
-    pass
+    pagination_class = UserPageLimitPagination
