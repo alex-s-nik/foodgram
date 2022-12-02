@@ -1,5 +1,8 @@
 from django.contrib.auth import get_user_model
-from djoser.serializers import UserSerializer as BaseUserSerializer
+from djoser.serializers import (
+    UserSerializer as BaseUserSerializer,
+    UserCreateSerializer as BaseUserCreateSerilizer
+)
 from rest_framework import serializers
 
 from users.models import Follow
@@ -17,3 +20,9 @@ class UserSerializer(BaseUserSerializer):
     def get_is_described(self, obj):
         request = self.context['request']
         return Follow.objects.filter(user=request.user, author=obj).exists()
+
+
+class UserCreateSerializer(BaseUserCreateSerilizer):
+    class Meta:
+        fields = ('id', 'email', 'username', 'first_name', 'last_name', 'password')
+        model = User
