@@ -49,9 +49,16 @@ class TagSerializer(serializers.ModelSerializer):
         model = Tag
 
 
+class IngridientSerializer(serializers.ModelSerializer):
+    class Meta:
+        fields = ('id', 'name', 'measurement_unit', 'amount')
+        model = Ingridient
+
+
 class RecipeSerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True, read_only=True)
     author = UserSerializer(read_only=True)
+    ingridients = IngridientSerializer(many=True)
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
 
@@ -72,19 +79,12 @@ class RecipeSerializer(serializers.ModelSerializer):
 
     def get_is_favorited(self, obj):
         request = self.context['request']
-        print(request.user.is_anonymous)
         if request.user.is_anonymous:
             return False
-        return obj.favorite_users.filter(author=request.user).exist()
+        return obj.favorite_users.filter(username=request.user).exists()
 
     def get_is_in_shopping_cart(self, obj):
         request = self.context['request']
         if request.user.is_anonymous:
             return False
-        return obj.cart_users.filter(author=request.user).exist()
-
-
-class IngridientSerializer(serializers.ModelSerializer):
-    class Meta:
-        fields = ('id', 'name', 'measurement_unit', 'amount')
-        model = Ingridient
+        return obj.cart_users.filter(username=request.user).exists()
