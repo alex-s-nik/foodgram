@@ -1,9 +1,6 @@
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import AnonymousUser
-from djoser.serializers import (
-    UserSerializer as BaseUserSerializer,
-    UserCreateSerializer as BaseUserCreateSerilizer
-)
+from djoser.serializers import UserCreateSerializer as BaseUserCreateSerilizer
+from djoser.serializers import UserSerializer as BaseUserSerializer
 from rest_framework import serializers
 
 from recipes.models import Ingridient, Recipe, Tag
@@ -16,9 +13,16 @@ class UserSerializer(BaseUserSerializer):
     is_described = serializers.SerializerMethodField()
 
     class Meta:
-        fields = ('email', 'id', 'username', 'first_name', 'last_name', 'is_described')
+        fields = (
+            'email',
+            'id',
+            'username',
+            'first_name',
+            'last_name',
+            'is_described'
+        )
         model = User
-    
+
     def get_is_described(self, obj):
         request = self.context['request']
         if request.user.is_anonymous:
@@ -28,7 +32,14 @@ class UserSerializer(BaseUserSerializer):
 
 class UserCreateSerializer(BaseUserCreateSerilizer):
     class Meta:
-        fields = ('id', 'email', 'username', 'first_name', 'last_name', 'password')
+        fields = (
+            'id',
+            'email',
+            'username',
+            'first_name',
+            'last_name',
+            'password'
+        )
         model = User
 
 
@@ -43,6 +54,7 @@ class RecipeSerializer(serializers.ModelSerializer):
     author = UserSerializer(read_only=True)
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
+
     class Meta:
         fields = (
             'id',
@@ -74,5 +86,5 @@ class RecipeSerializer(serializers.ModelSerializer):
 
 class IngridientSerializer(serializers.ModelSerializer):
     class Meta:
-        fields = ('id', 'name', 'measurement_unit', 'amount' )
+        fields = ('id', 'name', 'measurement_unit', 'amount')
         model = Ingridient

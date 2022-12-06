@@ -1,10 +1,10 @@
 from djoser.views import UserViewSet as BaseUserViewSet
 from rest_framework import viewsets
 
+from recipes.models import Ingridient, Recipe, Tag
+
 from .pagination import PageLimitPagination
 from .serializers import IngridientSerializer, RecipeSerializer, TagSerializer
-
-from recipes.models import Ingridient, Recipe, Tag
 
 
 class UserViewSet(BaseUserViewSet):
@@ -39,20 +39,31 @@ class RecipeViewSet(viewsets.ModelViewSet):
         if is_favorited is not None and is_favorited in ('0', '1'):
             if not self.request.user.is_anonymous:
                 if is_favorited == '0':
-                    queryset = queryset.filter(favorite_users__id=self.request.user)
+                    queryset = queryset.filter(
+                        favorite_users__id=self.request.user
+                    )
                 else:
-                    queryset = queryset.exclude(favorite_users__id=self.request.user)
+                    queryset = queryset.exclude(
+                        favorite_users__id=self.request.user
+                    )
 
-        is_in_shopping_cart = self.request.query_params.get('is_in_shopping_cart')
-        if is_in_shopping_cart is not None and is_in_shopping_cart in ('0', '1'):
+        is_in_shopping_cart = self.request.query_params.get(
+            'is_in_shopping_cart'
+        )
+        if (is_in_shopping_cart is not None
+                and is_in_shopping_cart in ('0', '1')):
             if not self.request.user.is_anonymous:
                 if is_in_shopping_cart == '0':
-                    queryset = queryset.filter(cart_users__id=self.request.user)
+                    queryset = queryset.filter(
+                        cart_users__id=self.request.user
+                    )
                 else:
-                    queryset = queryset.exclude(cart_users__id=self.request.user)
+                    queryset = queryset.exclude(
+                        cart_users__id=self.request.user
+                    )
 
         author_id = self.request.query_params.get('author')
-        if author_id is not None: 
+        if author_id is not None:
             queryset = queryset.filter(author__id=author_id)
 
         tags = self.request.query_params.get('tags')
