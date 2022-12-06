@@ -2,9 +2,9 @@ from djoser.views import UserViewSet as BaseUserViewSet
 from rest_framework import viewsets
 
 from .pagination import PageLimitPagination
-from .serializers import RecipeListSerializer, RecipeSerializer, TagSerializer
+from .serializers import IngridientSerializer, RecipeSerializer, TagSerializer
 
-from recipes.models import Recipe, Tag
+from recipes.models import Ingridient, Recipe, Tag
 
 
 class UserViewSet(BaseUserViewSet):
@@ -60,3 +60,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(tags__in=tags)
 
         return queryset
+
+
+class IngridientViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Ingridient.objects.all()
+    serializer_class = IngridientSerializer

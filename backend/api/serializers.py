@@ -6,7 +6,7 @@ from djoser.serializers import (
 )
 from rest_framework import serializers
 
-from recipes.models import Recipe, Tag
+from recipes.models import Ingridient, Recipe, Tag
 from users.models import Follow
 
 User = get_user_model()
@@ -72,5 +72,7 @@ class RecipeSerializer(serializers.ModelSerializer):
         return obj.cart_users.filter(author=request.user).exist()
 
 
-class RecipeListSerializer(RecipeSerializer):
-    pass
+class IngridientSerializer(serializers.ModelSerializer):
+    class Meta:
+        fields = ('id', 'name', 'measurement_unit', 'amount' )
+        model = Ingridient
