@@ -1,4 +1,4 @@
 from rest_framework.pagination import PageNumberPagination
 
-class UserPageLimitPagination(PageNumberPagination):
+class PageLimitPagination(PageNumberPagination):
     page_size_query_param = 'limit'
