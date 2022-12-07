@@ -134,6 +134,35 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return response
 
 
+    @action(detail=True, methods=['post', 'delete'])
+    def favorite(self, request, pk=None):
+        user = request.user
+        recipe = get_object_or_404(Recipe, pk=pk)
+
+        if request.method == 'POST':
+            if user.favorites.filter(id=recipe.id).exists():
+                raise ValidationError(
+                    {'errors': 'Рецепт уже был добавлен в избранное'})
+            context = self.get_serializer_context()
+            serializer = RecipeShoppingCartSerializer
+
+            response = Response(
+                serializer(instance=recipe, context=context).data,
+                status=status.HTTP_201_CREATED
+            )
+        elif request.method == 'DELETE':
+            if not user.favorites.filter(id=recipe.id).exists():
+                raise ValidationError(
+                    {'errors': 'Этого рецепта нет в избранном'})
+            user.favorites.remove(recipe.id)
+            response = Response(status=status.HTTP_204_NO_CONTENT)
+        else:
+            raise ValidationError(
+                {'errors': f'Метод {request.method} не поддерживается'})
+
+        return response
+
+
 class IngridientViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Ingridient.objects.all()
     serializer_class = IngridientSerializer
