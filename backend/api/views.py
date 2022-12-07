@@ -2,16 +2,15 @@ from django.db.models import F, Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet as BaseUserViewSet
-from rest_framework import status, viewsets
+from rest_framework import viewsets
 from rest_framework.decorators import action
-from rest_framework.exceptions import ValidationError
-from rest_framework.response import Response
 
 from recipes.models import Ingridient, Recipe, Tag
 
+from .mixins import M2MCreateDelete
 from .pagination import PageLimitPagination
 from .serializers import (IngridientSerializer, RecipeSerializer,
-                          RecipeShoppingCartSerializer, TagSerializer)
+                          ShortRecipeSerializer, TagSerializer)
 
 
 class UserViewSet(BaseUserViewSet):
@@ -23,7 +22,7 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = TagSerializer
 
 
-class RecipeViewSet(viewsets.ModelViewSet):
+class RecipeViewSet(viewsets.ModelViewSet, M2MCreateDelete):
     pagination_class = PageLimitPagination
     serializer_classes = {
         'list': RecipeSerializer,
@@ -84,29 +83,16 @@ class RecipeViewSet(viewsets.ModelViewSet):
         user = request.user
         recipe = get_object_or_404(Recipe, pk=pk)
 
-        if request.method == 'POST':
-            if user.shopping_cart.filter(id=recipe.id).exists():
-                raise ValidationError(
-                    {'errors': 'Рецепт уже был добавлен в корзину'})
-            user.shopping_cart.add(recipe)
-            context = self.get_serializer_context()
-            serializer = RecipeShoppingCartSerializer
-
-            response = Response(
-                serializer(instance=recipe, context=context).data,
-                status=status.HTTP_201_CREATED
-            )
-        elif request.method == 'DELETE':
-            if not user.shopping_cart.filter(id=recipe.id).exists():
-                raise ValidationError(
-                    {'errors': 'Этого рецепта нет в корзине'})
-            user.shopping_cart.remove(recipe.id)
-            response = Response(status=status.HTTP_204_NO_CONTENT)
-        else:
-            raise ValidationError(
-                {'errors': f'Метод {request.method} не поддерживается'})
-
-        return response
+        return self.m2m_create_delete(
+            obj1_m2m_manager=user.shopping_cart,
+            obj2=recipe,
+            request=request,
+            serializer=ShortRecipeSerializer,
+            errors={
+                'create_fail': 'Рецепт уже был добавлен в корзину',
+                'delete_fail': 'Этого рецепта нет в корзине'
+            }
+        )
 
     @action(detail=False, methods=['get'])
     def download_shopping_cart(self, request):
@@ -133,34 +119,21 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
         return response
 
-
     @action(detail=True, methods=['post', 'delete'])
     def favorite(self, request, pk=None):
         user = request.user
         recipe = get_object_or_404(Recipe, pk=pk)
 
-        if request.method == 'POST':
-            if user.favorites.filter(id=recipe.id).exists():
-                raise ValidationError(
-                    {'errors': 'Рецепт уже был добавлен в избранное'})
-            context = self.get_serializer_context()
-            serializer = RecipeShoppingCartSerializer
-
-            response = Response(
-                serializer(instance=recipe, context=context).data,
-                status=status.HTTP_201_CREATED
-            )
-        elif request.method == 'DELETE':
-            if not user.favorites.filter(id=recipe.id).exists():
-                raise ValidationError(
-                    {'errors': 'Этого рецепта нет в избранном'})
-            user.favorites.remove(recipe.id)
-            response = Response(status=status.HTTP_204_NO_CONTENT)
-        else:
-            raise ValidationError(
-                {'errors': f'Метод {request.method} не поддерживается'})
-
-        return response
+        return self.m2m_create_delete(
+            obj1_m2m_manager=user.shopping_cart,
+            obj2=recipe,
+            request=request,
+            serializer=ShortRecipeSerializer,
+            errors={
+                'create_fail': 'Рецепт уже был добавлен в избранное',
+                'delete_fail': 'Этого рецепта нет в избранном'
+            }
+        )
 
 
 class IngridientViewSet(viewsets.ReadOnlyModelViewSet):

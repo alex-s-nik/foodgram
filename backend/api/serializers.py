@@ -90,7 +90,7 @@ class RecipeSerializer(serializers.ModelSerializer):
         return obj.cart_users.filter(username=request.user).exists()
 
 
-class RecipeShoppingCartSerializer(serializers.ModelSerializer):
+class ShortRecipeSerializer(serializers.ModelSerializer):
     class Meta:
         fields = ('id', 'name', 'image', 'cooking_time')
         model = Recipe
