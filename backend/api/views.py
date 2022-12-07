@@ -1,3 +1,5 @@
+from django.db.models import F, Sum
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet as BaseUserViewSet
 from rest_framework import status, viewsets
@@ -103,6 +105,31 @@ class RecipeViewSet(viewsets.ModelViewSet):
         else:
             raise ValidationError(
                 {'errors': f'Метод {request.method} не поддерживается'})
+
+        return response
+
+    @action(detail=False, methods=['get'])
+    def download_shopping_cart(self, request):
+        user = request.user
+
+        ingridients_queryset = user.shopping_cart.values(
+            'ingridients__name',
+            'ingridients__measurement_unit'
+        ).annotate(
+            Sum('ingridients__amount')
+        ).values(
+            name=F('ingridients__name'),
+            units=F('ingridients__measurement_unit'),
+            total=F('ingridients__amount__sum')
+        ).order_by('name')
+
+        text = '\n'.join(
+            f'{ingt["name"]}: {ingt["total"]} {ingt["units"]}'
+            for ingt in ingridients_queryset
+        )
+        filename = 'shopping_cart.txt'
+        response = HttpResponse(text, content_type='text/plain')
+        response['Content-Disposition'] = f'attachment; filename={filename}'
 
         return response
 
