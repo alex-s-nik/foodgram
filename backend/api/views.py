@@ -93,6 +93,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 serializer(instance=recipe, context=context).data,
                 status=status.HTTP_201_CREATED
             )
+        elif request.method == 'DELETE':
+            if not user.shopping_cart.filter(id=recipe.id).exists():
+                raise ValidationError({'errors': 'Этого рецепта нет в корзине'})
+            user.shopping_cart.remove(recipe.id)
+            response = Response(status=status.HTTP_204_NO_CONTENT)
         else:
             raise ValidationError({'errors': f'Метод {request.method} не поддерживается'})
 
