@@ -4,7 +4,6 @@ from djoser.serializers import UserSerializer as BaseUserSerializer
 from rest_framework import serializers
 
 from recipes.models import Ingridient, Recipe, Tag
-from users.models import Follow
 
 User = get_user_model()
 
@@ -25,9 +24,10 @@ class UserSerializer(BaseUserSerializer):
 
     def get_is_described(self, obj):
         request = self.context['request']
-        if request.user.is_anonymous:
+        user = request.user
+        if user.is_anonymous:
             return False
-        return Follow.objects.filter(user=request.user, author=obj).exists()
+        return user.subscribers.filter(id=obj.id).exists()
 
 
 class UserCreateSerializer(BaseUserCreateSerilizer):
