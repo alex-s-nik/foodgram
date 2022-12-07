@@ -1,7 +1,6 @@
 from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet as BaseUserViewSet
-from rest_framework import status
-from rest_framework import viewsets
+from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
@@ -9,7 +8,8 @@ from rest_framework.response import Response
 from recipes.models import Ingridient, Recipe, Tag
 
 from .pagination import PageLimitPagination
-from .serializers import IngridientSerializer, RecipeSerializer, RecipeShoppingCartSerializer, TagSerializer
+from .serializers import (IngridientSerializer, RecipeSerializer,
+                          RecipeShoppingCartSerializer, TagSerializer)
 
 
 class UserViewSet(BaseUserViewSet):
@@ -84,7 +84,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
         if request.method == 'POST':
             if user.shopping_cart.filter(id=recipe.id).exists():
-                raise ValidationError({'errors': 'Рецепт уже был добавлен в корзину'})
+                raise ValidationError(
+                    {'errors': 'Рецепт уже был добавлен в корзину'})
             user.shopping_cart.add(recipe)
             context = self.get_serializer_context()
             serializer = RecipeShoppingCartSerializer
@@ -95,14 +96,15 @@ class RecipeViewSet(viewsets.ModelViewSet):
             )
         elif request.method == 'DELETE':
             if not user.shopping_cart.filter(id=recipe.id).exists():
-                raise ValidationError({'errors': 'Этого рецепта нет в корзине'})
+                raise ValidationError(
+                    {'errors': 'Этого рецепта нет в корзине'})
             user.shopping_cart.remove(recipe.id)
             response = Response(status=status.HTTP_204_NO_CONTENT)
         else:
-            raise ValidationError({'errors': f'Метод {request.method} не поддерживается'})
+            raise ValidationError(
+                {'errors': f'Метод {request.method} не поддерживается'})
 
         return response
-
 
 
 class IngridientViewSet(viewsets.ReadOnlyModelViewSet):
