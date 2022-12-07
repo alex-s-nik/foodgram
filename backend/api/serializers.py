@@ -88,3 +88,9 @@ class RecipeSerializer(serializers.ModelSerializer):
         if request.user.is_anonymous:
             return False
         return obj.cart_users.filter(username=request.user).exists()
+
+
+class RecipeShoppingCartSerializer(serializers.ModelSerializer):
+    class Meta:
+        fields = ('id', 'name', 'image', 'cooking_time')
+        model = Recipe

@@ -1,10 +1,15 @@
+from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet as BaseUserViewSet
+from rest_framework import status
 from rest_framework import viewsets
+from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError
+from rest_framework.response import Response
 
 from recipes.models import Ingridient, Recipe, Tag
 
 from .pagination import PageLimitPagination
-from .serializers import IngridientSerializer, RecipeSerializer, TagSerializer
+from .serializers import IngridientSerializer, RecipeSerializer, RecipeShoppingCartSerializer, TagSerializer
 
 
 class UserViewSet(BaseUserViewSet):
@@ -71,6 +76,28 @@ class RecipeViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(tags__in=tags)
 
         return queryset
+
+    @action(detail=True, methods=['post', 'delete'])
+    def shopping_cart(self, request, pk=None):
+        user = request.user
+        recipe = get_object_or_404(Recipe, pk=pk)
+
+        if request.method == 'POST':
+            if user.shopping_cart.filter(id=recipe.id).exists():
+                raise ValidationError({'errors': 'Рецепт уже был добавлен в корзину'})
+            user.shopping_cart.add(recipe)
+            context = self.get_serializer_context()
+            serializer = RecipeShoppingCartSerializer
+
+            response = Response(
+                serializer(instance=recipe, context=context).data,
+                status=status.HTTP_201_CREATED
+            )
+        else:
+            raise ValidationError({'errors': f'Метод {request.method} не поддерживается'})
+
+        return response
+
 
 
 class IngridientViewSet(viewsets.ReadOnlyModelViewSet):
