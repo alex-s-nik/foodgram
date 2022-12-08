@@ -1,21 +1,22 @@
+import pytest
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
 
 class Test03Subscriptioins:
-    subcribe_url = '"/api/users/{id}/subscribe/"'
+    subcribe_url = '/api/users/{id}/subscribe/'
 
-    def test_03_url_is_available(self, client):
-        response = client.post(self.subcribe_url)
-
-        assert response.status_code == 404, (
-            f'Страница `{self.subcribe_url}` не найдена, проверьте этот адрес в *urls.py*'
-        )
-
+    @pytest.mark.django_db(transaction=True)
     def test_03_subscribe_to_user(self, client, first_user_client, first_user, second_user):
         # подписка неавторизованного пользователя
-        response = client.post(self.subcribe_url.format(id=second_user))
+
+        url = self.subcribe_url.format(id=second_user.id)
+        response = client.post(url)
+
+        assert response.status_code != 404, (
+            f'Страница `{url}` не найдена, проверьте этот адрес в *urls.py*'
+        )
 
         code = 401
         assert response.status_code == code, (

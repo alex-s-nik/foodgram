@@ -31,9 +31,9 @@ class Subscriber(models.Model):
     author = models.ForeignKey(
         to=User,
         on_delete=models.CASCADE,
-        related_name='describers'
+        related_name='followers'
     )
-    describer = models.ForeignKey(
+    follower = models.ForeignKey(
         to=User,
         on_delete=models.CASCADE,
         related_name='authors'
@@ -42,7 +42,7 @@ class Subscriber(models.Model):
         constraints = [
             models.CheckConstraint(
                 name='impossible_follow_self',
-                check=models.Q(author=models.F('describer'))
+                check=~models.Q(author=models.F('follower'))
             )
         ]
 

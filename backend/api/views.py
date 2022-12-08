@@ -1,3 +1,4 @@
+from django.contrib.auth import get_user_model
 from django.db.models import F, Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
@@ -10,11 +11,32 @@ from recipes.models import Ingridient, Recipe, Tag
 from .mixins import M2MCreateDelete
 from .pagination import PageLimitPagination
 from .serializers import (IngridientSerializer, RecipeSerializer,
-                          ShortRecipeSerializer, TagSerializer)
+                          ShortRecipeSerializer, TagSerializer,
+                          UserSerializer)
+
+User = get_user_model()
 
 
-class UserViewSet(BaseUserViewSet):
+class UserViewSet(BaseUserViewSet, M2MCreateDelete):
     pagination_class = PageLimitPagination
+
+    @action(detail=True, methods=['post', 'delete'])
+    def subscribe(self, request, id=None):
+        subscriber = request.user
+        author = get_object_or_404(User, id=id)
+
+        return self.m2m_create_delete(
+            obj1_m2m_manager=author.subscribers,
+            obj2=subscriber,
+            request=request,
+            serializer=UserSerializer,
+            errors={
+                'create_fail': 'Вы уже подписаны на этого пользователя',
+                'delete_fail': 'Вы не подписаны на этого пользователя'
+            }
+        )
+
+
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
