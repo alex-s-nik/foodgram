@@ -32,7 +32,7 @@ class M2MCreateDelete():
         elif request.method == 'DELETE':
             if not obj1_m2m_manager.filter(id=obj2.id).exists():
                 raise ValidationError(
-                    {'errors': 'Этого рецепта нет в избранном'})
+                    {'errors': errors['delete_fail']})
             obj1_m2m_manager.remove(obj2.id)
             response = Response(status=status.HTTP_204_NO_CONTENT)
         else:
