@@ -49,7 +49,7 @@ class Ingridient(models.Model):
 class Recipe(models.Model):
     '''Рецепт блюда'''
     author = models.ForeignKey(
-        to=User,
+        to='users.User',
         on_delete=models.CASCADE,
         related_name='recipes',
         verbose_name='Автор'

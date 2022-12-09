@@ -14,37 +14,35 @@ class User(AbstractUser):
         related_name='cart_users',
         verbose_name='Список покупок'
     )
+    subscribers = models.ManyToManyField(
+        to='self',
+        related_name='subscribed',
+        through='Subscriber',
+        symmetrical=False,
+        verbose_name='Подписчики'
+    )
 
     @property
     def is_admin(self):
         return self.is_superuser
 
 
-class Follow(models.Model):
-    '''Подписка на пользователя'''
-    user = models.ForeignKey(
-        to=User,
-        on_delete=models.CASCADE,
-        related_name='follower',
-        verbose_name='Подписчик'
-    )
+class Subscriber(models.Model):
     author = models.ForeignKey(
         to=User,
         on_delete=models.CASCADE,
-        related_name='author',
-        verbose_name='Автор'
+        related_name='followers'
     )
-
+    follower = models.ForeignKey(
+        to=User,
+        on_delete=models.CASCADE,
+        related_name='authors'
+    )
     class Meta:
-        verbose_name = 'Подписка'
-        verbose_name_plural = 'Подписки'
         constraints = [
             models.CheckConstraint(
                 name='impossible_follow_self',
-                check=~models.Q(user=models.F('author')),
-            ),
-            models.UniqueConstraint(
-                fields=['user', 'author'],
-                name='selffollow'
+                check=~models.Q(author=models.F('follower'))
             )
         ]
+
