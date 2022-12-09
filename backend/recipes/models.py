@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.db import models
+from foodgram import settings
 
 User = get_user_model()
 
@@ -59,7 +60,7 @@ class Recipe(models.Model):
         verbose_name='Название'
     )
     image = models.ImageField(
-        upload_to='img/',
+        upload_to='recipes/',
         verbose_name='Фото'
     )
     text = models.TextField(
