@@ -10,7 +10,7 @@ from recipes.models import Ingridient, Recipe, Tag
 
 from .mixins import M2MCreateDelete
 from .pagination import PageLimitPagination
-from .serializers import (IngridientSerializer, RecipeSerializer,
+from .serializers import (ShortIngridientSerializer, RecipeSerializer,
                           ShortRecipeSerializer, TagSerializer,
                           UserSerializer)
 
@@ -160,4 +160,4 @@ class RecipeViewSet(viewsets.ModelViewSet, M2MCreateDelete):
 
 class IngridientViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Ingridient.objects.all()
-    serializer_class = IngridientSerializer
+    serializer_class = ShortIngridientSerializer

@@ -3,7 +3,7 @@ from djoser.serializers import UserCreateSerializer as BaseUserCreateSerilizer
 from djoser.serializers import UserSerializer as BaseUserSerializer
 from rest_framework import serializers
 
-from recipes.models import Ingridient, Recipe, Tag
+from recipes.models import AmountIngridients, Ingridient, Recipe, Tag
 
 User = get_user_model()
 
@@ -54,16 +54,40 @@ class TagSerializer(serializers.ModelSerializer):
         model = Tag
 
 
+class ShortIngridientSerializer(serializers.ModelSerializer):
+    class Meta:
+        fields = ('id', 'amount')
+        model = Ingridient
+
+
+class AmountIngridientsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AmountIngridients
+        fields = ('amount',)
+
+
 class IngridientSerializer(serializers.ModelSerializer):
     class Meta:
-        fields = ('id', 'name', 'measurement_unit', 'amount')
         model = Ingridient
+        fields = '__all__'
+
+    def serialize_ingridients_amount(self, ingridient_instance):
+        ingridient_amount_instance = ingridient_instance.recipes.filter(
+            recipe=self.context['recipe_instance']
+        ).first()
+        
+        if ingridient_amount_instance:
+            return AmountIngridientsSerializer(ingridient_amount_instance).data
+    
+    def to_representation(self, instance):
+        rep = super().to_representation(instance)
+        return {**rep, **self.serialize_ingridients_amount(instance)}
 
 
 class RecipeSerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True, read_only=True)
     author = UserSerializer(read_only=True)
-    ingridients = IngridientSerializer(many=True)
+    ingridients = serializers.SerializerMethodField()
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
 
@@ -93,6 +117,13 @@ class RecipeSerializer(serializers.ModelSerializer):
         if request.user.is_anonymous:
             return False
         return obj.cart_users.filter(username=request.user).exists()
+    
+    def get_ingridients(self, obj):
+        return AmountIngridientsSerializer(
+            obj.ingridients.all(),
+            many=True,
+            context={'recipe_instance': obj}
+        ).data
 
 
 class ShortRecipeSerializer(serializers.ModelSerializer):
