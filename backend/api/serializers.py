@@ -61,27 +61,25 @@ class ShortIngridientSerializer(serializers.ModelSerializer):
 
 
 class AmountIngridientsSerializer(serializers.ModelSerializer):
+    name = serializers.SerializerMethodField()
+    measurement_unit = serializers.SerializerMethodField()
+
+    def get_name(self, obj):
+        return obj.ingridient.name
+
+    def get_measurement_unit(self, obj):
+        return obj.ingridient.measurement_unit
+
+
     class Meta:
         model = AmountIngridients
-        fields = ('amount',)
+        fields = ('id', 'name', 'measurement_unit', 'amount')
 
 
 class IngridientSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ingridient
         fields = '__all__'
-
-    def serialize_ingridients_amount(self, ingridient_instance):
-        ingridient_amount_instance = ingridient_instance.recipes.filter(
-            recipe=self.context['recipe_instance']
-        ).first()
-        
-        if ingridient_amount_instance:
-            return AmountIngridientsSerializer(ingridient_amount_instance).data
-    
-    def to_representation(self, instance):
-        rep = super().to_representation(instance)
-        return {**rep, **self.serialize_ingridients_amount(instance)}
 
 
 class RecipeSerializer(serializers.ModelSerializer):
@@ -120,9 +118,8 @@ class RecipeSerializer(serializers.ModelSerializer):
     
     def get_ingridients(self, obj):
         return AmountIngridientsSerializer(
-            obj.ingridients.all(),
-            many=True,
-            context={'recipe_instance': obj}
+            obj.ingridients_amount.all(),
+            many=True
         ).data
 
 
