@@ -10,9 +10,9 @@ from recipes.models import Ingridient, Recipe, Tag
 
 from .mixins import M2MCreateDelete
 from .pagination import PageLimitPagination
-from .serializers import (IngridientSerializer, RecipeSerializer,
-                          ShortRecipeSerializer, TagSerializer,
-                          UserSerializer)
+from .serializers import (CreateRecipeSerializer, RecipeSerializer,
+                          ShortIngridientSerializer, ShortRecipeSerializer,
+                          TagSerializer, UserSerializer)
 
 User = get_user_model()
 
@@ -37,8 +37,6 @@ class UserViewSet(BaseUserViewSet, M2MCreateDelete):
         )
 
 
-
-
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
@@ -49,9 +47,9 @@ class RecipeViewSet(viewsets.ModelViewSet, M2MCreateDelete):
     serializer_classes = {
         'list': RecipeSerializer,
         'retrieve': RecipeSerializer,
-        'create': ...,
-        'update': ...,
-        'delete': ...
+        'create': CreateRecipeSerializer,
+        'update': CreateRecipeSerializer,
+
     }
 
     def get_serializer_class(self):
@@ -124,11 +122,11 @@ class RecipeViewSet(viewsets.ModelViewSet, M2MCreateDelete):
             'ingridients__name',
             'ingridients__measurement_unit'
         ).annotate(
-            Sum('ingridients__amount')
+            Sum('ingridients_amount__amount')
         ).values(
             name=F('ingridients__name'),
             units=F('ingridients__measurement_unit'),
-            total=F('ingridients__amount__sum')
+            total=F('ingridients_amount__amount__sum')
         ).order_by('name')
 
         text = '\n'.join(
@@ -157,7 +155,13 @@ class RecipeViewSet(viewsets.ModelViewSet, M2MCreateDelete):
             }
         )
 
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
+
+    def perform_update(self, serializer):
+        serializer.save(author=self.request.user)
+
 
 class IngridientViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Ingridient.objects.all()
-    serializer_class = IngridientSerializer
+    serializer_class = ShortIngridientSerializer
