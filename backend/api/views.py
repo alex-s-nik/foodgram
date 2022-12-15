@@ -10,9 +10,9 @@ from recipes.models import Ingridient, Recipe, Tag
 
 from .mixins import M2MCreateDelete
 from .pagination import PageLimitPagination
-from .serializers import (ShortIngridientSerializer, RecipeSerializer,
-                          ShortRecipeSerializer, TagSerializer,
-                          UserSerializer)
+from .serializers import (CreateRecipeSerializer, RecipeSerializer,
+                          ShortIngridientSerializer, ShortRecipeSerializer,
+                          TagSerializer, UserSerializer)
 
 User = get_user_model()
 
@@ -37,8 +37,6 @@ class UserViewSet(BaseUserViewSet, M2MCreateDelete):
         )
 
 
-
-
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
@@ -49,9 +47,9 @@ class RecipeViewSet(viewsets.ModelViewSet, M2MCreateDelete):
     serializer_classes = {
         'list': RecipeSerializer,
         'retrieve': RecipeSerializer,
-        'create': ...,
-        'update': ...,
-        'delete': ...
+        'create': CreateRecipeSerializer,
+        'update': CreateRecipeSerializer,
+
     }
 
     def get_serializer_class(self):
@@ -156,6 +154,12 @@ class RecipeViewSet(viewsets.ModelViewSet, M2MCreateDelete):
                 'delete_fail': 'Этого рецепта нет в избранном'
             }
         )
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
+
+    def perform_update(self, serializer):
+        serializer.save(author=self.request.user)
 
 
 class IngridientViewSet(viewsets.ReadOnlyModelViewSet):

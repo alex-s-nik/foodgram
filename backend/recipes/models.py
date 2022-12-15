@@ -1,6 +1,5 @@
 from django.contrib.auth import get_user_model
 from django.db import models
-from foodgram import settings
 
 User = get_user_model()
 
@@ -31,6 +30,7 @@ class Ingridient(models.Model):
         max_length=32,
         verbose_name='Единица измерения'
     )
+
 
 class AmountIngridients(models.Model):
     recipe = models.ForeignKey(

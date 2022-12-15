@@ -38,6 +38,7 @@ class Subscriber(models.Model):
         on_delete=models.CASCADE,
         related_name='authors'
     )
+
     class Meta:
         constraints = [
             models.CheckConstraint(
@@ -45,4 +46,3 @@ class Subscriber(models.Model):
                 check=~models.Q(author=models.F('follower'))
             )
         ]
-
