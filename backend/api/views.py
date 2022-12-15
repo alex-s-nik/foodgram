@@ -122,11 +122,11 @@ class RecipeViewSet(viewsets.ModelViewSet, M2MCreateDelete):
             'ingridients__name',
             'ingridients__measurement_unit'
         ).annotate(
-            Sum('ingridients__amount')
+            Sum('ingridients_amount__amount')
         ).values(
             name=F('ingridients__name'),
             units=F('ingridients__measurement_unit'),
-            total=F('ingridients__amount__sum')
+            total=F('ingridients_amount__amount__sum')
         ).order_by('name')
 
         text = '\n'.join(
