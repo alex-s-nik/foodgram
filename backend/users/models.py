@@ -26,6 +26,10 @@ class User(AbstractUser):
     def is_admin(self):
         return self.is_superuser
 
+    class Meta:
+        verbose_name = 'Пользователь'
+        verbose_name_plural = 'Пользователи'
+
 
 class Subscriber(models.Model):
     author = models.ForeignKey(

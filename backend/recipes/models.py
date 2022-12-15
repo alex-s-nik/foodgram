@@ -19,6 +19,10 @@ class Tag(models.Model):
         unique=True
     )
 
+    class Meta:
+        verbose_name = 'Тег'
+        verbose_name_plural = 'Теги'
+
 
 class Ingridient(models.Model):
     '''Ингридиент в рецепте'''
@@ -31,8 +35,13 @@ class Ingridient(models.Model):
         verbose_name='Единица измерения'
     )
 
+    class Meta:
+        verbose_name = 'Ингридиент'
+        verbose_name_plural = 'Ингридиенты'
+
 
 class AmountIngridients(models.Model):
+    '''Количество ингридиентов'''
     recipe = models.ForeignKey(
         to='Recipe',
         on_delete=models.CASCADE,
@@ -48,6 +57,10 @@ class AmountIngridients(models.Model):
     amount = models.PositiveSmallIntegerField(
         verbose_name='Количество'
     )
+
+    class Meta:
+        verbose_name = 'Количество ингридиентов'
+        verbose_name_plural = 'Количество ингридиентов'    
 
 
 class Recipe(models.Model):
@@ -84,3 +97,7 @@ class Recipe(models.Model):
     cooking_time = models.PositiveSmallIntegerField(
         verbose_name='Время приготовления, мин'
     )
+
+    class Meta:
+        verbose_name = 'Рецепт'
+        verbose_name_plural = 'Рецепты'
