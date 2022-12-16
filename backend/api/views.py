@@ -1,5 +1,5 @@
 from django.contrib.auth import get_user_model
-from django.db.models import F, Sum
+from django.db.models import Case, F, Q, Sum, Value, When
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet as BaseUserViewSet
@@ -11,7 +11,7 @@ from recipes.models import Ingridient, Recipe, Tag
 from .mixins import M2MCreateDelete
 from .pagination import PageLimitPagination
 from .serializers import (CreateRecipeSerializer, RecipeSerializer,
-                          ShortIngridientSerializer, ShortRecipeSerializer,
+                          IngridientSerializer, ShortRecipeSerializer,
                           TagSerializer, UserSerializer)
 
 User = get_user_model()
@@ -163,5 +163,33 @@ class RecipeViewSet(viewsets.ModelViewSet, M2MCreateDelete):
 
 
 class IngridientViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Ingridient.objects.all()
-    serializer_class = ShortIngridientSerializer
+    serializer_class = IngridientSerializer
+
+    def get_queryset(self):
+        queryset = Ingridient.objects.all()
+
+        searched_name = self.request.query_params.get('name')
+        if searched_name:
+            # Если есть совпадения, сначала выводим ингридиенты 
+            # с совпадениями в начале,
+            # затем те, в которых есть совпадения вообще
+            # Для этого создадим еще один столбец в таблице с признаком:
+            # 2 - совпадение в начале имени,
+            # 1 - совпадение вообще,
+            # 0 - совпадений нет.
+            # Затем отберем те записи, у которых этот признак 1 или 2
+            # В окончательный запрос отправим записи в нужном порядке
+            # и без столбца-признака
+            queryset = queryset.annotate(
+                search_sort_attribute=Case(
+                    When(name__istartswith=searched_name, then=Value('2')),
+                    When(name__icontains=searched_name, then=Value('1')),
+                    default=Value('0')
+                )
+            ).filter(
+                search_sort_attribute__in=('1', '2')
+            ).order_by('-search_sort_attribute').values(
+                'id', 'name', 'measurement_unit'
+            )
+        
+        return queryset
