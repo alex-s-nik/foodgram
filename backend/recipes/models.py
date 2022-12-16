@@ -60,7 +60,7 @@ class AmountIngridients(models.Model):
 
     class Meta:
         verbose_name = 'Количество ингридиентов'
-        verbose_name_plural = 'Количество ингридиентов'    
+        verbose_name_plural = 'Количество ингридиентов'
 
 
 class Recipe(models.Model):

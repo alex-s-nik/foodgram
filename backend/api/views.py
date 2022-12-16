@@ -1,5 +1,5 @@
 from django.contrib.auth import get_user_model
-from django.db.models import Case, F, Q, Sum, Value, When
+from django.db.models import Case, F, Sum, Value, When
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet as BaseUserViewSet
@@ -170,7 +170,7 @@ class IngridientViewSet(viewsets.ReadOnlyModelViewSet):
 
         searched_name = self.request.query_params.get('name')
         if searched_name:
-            # Если есть совпадения, сначала выводим ингридиенты 
+            # Если есть совпадения, сначала выводим ингридиенты
             # с совпадениями в начале,
             # затем те, в которых есть совпадения вообще
             # Для этого создадим еще один столбец в таблице с признаком:
@@ -191,5 +191,5 @@ class IngridientViewSet(viewsets.ReadOnlyModelViewSet):
             ).order_by('-search_sort_attribute').values(
                 'id', 'name', 'measurement_unit'
             )
-        
+
         return queryset
