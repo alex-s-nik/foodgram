@@ -10,8 +10,8 @@ from recipes.models import Ingridient, Recipe, Tag
 
 from .mixins import M2MCreateDelete
 from .pagination import PageLimitPagination
-from .serializers import (CreateRecipeSerializer, RecipeSerializer,
-                          IngridientSerializer, ShortRecipeSerializer,
+from .serializers import (CreateRecipeSerializer, IngridientSerializer,
+                          RecipeSerializer, ShortRecipeSerializer,
                           TagSerializer, UserSerializer)
 
 User = get_user_model()

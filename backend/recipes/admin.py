@@ -2,6 +2,7 @@ from django.contrib import admin
 
 from .models import AmountIngridients, Ingridient, Recipe, Tag
 
+
 class RecipeAdmin(admin.ModelAdmin):
     list_display = ('name', 'author', 'count_field',)
     list_filter = ('author', 'name', 'tags',)
