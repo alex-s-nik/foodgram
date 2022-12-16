@@ -154,6 +154,7 @@ DJOSER = {
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR.parent / 'media'
 
+# настройки для приложения recipes
 RECIPES = {
     'ingredients_data_file': 'data/ingredients.json'
 }
