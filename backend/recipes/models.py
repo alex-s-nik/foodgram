@@ -24,7 +24,7 @@ class Tag(models.Model):
         verbose_name_plural = 'Теги'
 
 
-class Ingridient(models.Model):
+class Ingredient(models.Model):
     '''Ингридиент в рецепте'''
     name = models.CharField(
         verbose_name='Название',
@@ -40,16 +40,16 @@ class Ingridient(models.Model):
         verbose_name_plural = 'Ингридиенты'
 
 
-class AmountIngridients(models.Model):
+class AmountIngredients(models.Model):
     '''Количество ингридиентов'''
     recipe = models.ForeignKey(
         to='Recipe',
         on_delete=models.CASCADE,
-        related_name='ingridients_amount',
+        related_name='ingredients_amount',
         verbose_name='Рецепт'
     )
-    ingridient = models.ForeignKey(
-        to=Ingridient,
+    ingredient = models.ForeignKey(
+        to=Ingredient,
         on_delete=models.CASCADE,
         related_name='recipes_amount',
         verbose_name='Ингридиент'
@@ -83,11 +83,11 @@ class Recipe(models.Model):
         max_length=1024,
         verbose_name='Описание'
     )
-    ingridients = models.ManyToManyField(
-        to=Ingridient,
+    ingredients = models.ManyToManyField(
+        to=Ingredient,
         related_name='recipes',
         verbose_name='Ингридиенты',
-        through=AmountIngridients
+        through=AmountIngredients
     )
     tags = models.ManyToManyField(
         to=Tag,

@@ -3,16 +3,18 @@ from django.db.models import Case, F, Sum, Value, When
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet as BaseUserViewSet
-from rest_framework import viewsets
+from rest_framework import status, viewsets
 from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 
-from recipes.models import Ingridient, Recipe, Tag
+from recipes.models import Ingredient, Recipe, Tag
 
 from .mixins import M2MCreateDelete
 from .pagination import PageLimitPagination
-from .serializers import (CreateRecipeSerializer, IngridientSerializer,
+from .serializers import (CreateRecipeSerializer, IngredientSerializer,
                           RecipeSerializer, ShortRecipeSerializer,
-                          TagSerializer, UserSerializer)
+                          TagSerializer, UserSerializer, UserSubscriptionsSerializer)
 
 User = get_user_model()
 
@@ -36,6 +38,38 @@ class UserViewSet(BaseUserViewSet, M2MCreateDelete):
             }
         )
 
+    @action(
+        detail=False,
+        methods=['get'],
+        permission_classes = (IsAuthenticated,),
+        serializer_class = UserSubscriptionsSerializer
+    )
+    def subscriptions(self, request):
+        user = request.user
+        serializer = self.get_serializer_class()
+        recipes_limit = self.request.query_params.get('recipes_limit')
+        queryset = user.subscribed.all()
+        context = {
+            'recires_limit': recipes_limit,
+            'request': request
+        }
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True, context=context)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True, context=context)
+        return Response(serializer.data)
+
+        return Response(
+            serializer(
+            user.subscribed.all(),
+            many=True,
+            context=context
+        ).data, status=status.HTTP_200_OK)
+
+
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Tag.objects.all()
@@ -48,7 +82,7 @@ class RecipeViewSet(viewsets.ModelViewSet, M2MCreateDelete):
         'list': RecipeSerializer,
         'retrieve': RecipeSerializer,
         'create': CreateRecipeSerializer,
-        'update': CreateRecipeSerializer,
+        'partial_update': CreateRecipeSerializer,
 
     }
 
@@ -64,13 +98,13 @@ class RecipeViewSet(viewsets.ModelViewSet, M2MCreateDelete):
         is_favorited = self.request.query_params.get('is_favorited')
         if is_favorited is not None and is_favorited in ('0', '1'):
             if not self.request.user.is_anonymous:
-                if is_favorited == '0':
+                if is_favorited == '1':
                     queryset = queryset.filter(
-                        favorite_users__id=self.request.user
+                        favorite_users__id=self.request.user.id
                     )
                 else:
                     queryset = queryset.exclude(
-                        favorite_users__id=self.request.user
+                        favorite_users__id=self.request.user.id
                     )
 
         is_in_shopping_cart = self.request.query_params.get(
@@ -79,22 +113,22 @@ class RecipeViewSet(viewsets.ModelViewSet, M2MCreateDelete):
         if (is_in_shopping_cart is not None
                 and is_in_shopping_cart in ('0', '1')):
             if not self.request.user.is_anonymous:
-                if is_in_shopping_cart == '0':
+                if is_in_shopping_cart == '1':
                     queryset = queryset.filter(
-                        cart_users__id=self.request.user
+                        cart_users__id=self.request.user.id
                     )
                 else:
                     queryset = queryset.exclude(
-                        cart_users__id=self.request.user
+                        cart_users__id=self.request.user.id
                     )
 
         author_id = self.request.query_params.get('author')
         if author_id is not None:
             queryset = queryset.filter(author__id=author_id)
 
-        tags = self.request.query_params.get('tags')
-        if tags is not None:
-            queryset = queryset.filter(tags__in=tags)
+        tags = self.request.query_params.getlist('tags')
+        if tags:
+            queryset = queryset.filter(tags__slug__in=tags)
 
         return queryset
 
@@ -118,20 +152,20 @@ class RecipeViewSet(viewsets.ModelViewSet, M2MCreateDelete):
     def download_shopping_cart(self, request):
         user = request.user
 
-        ingridients_queryset = user.shopping_cart.values(
-            'ingridients__name',
-            'ingridients__measurement_unit'
+        ingredients_queryset = user.shopping_cart.values(
+            'ingredients__name',
+            'ingredients__measurement_unit'
         ).annotate(
-            Sum('ingridients_amount__amount')
+            Sum('ingredients_amount__amount')
         ).values(
-            name=F('ingridients__name'),
-            units=F('ingridients__measurement_unit'),
-            total=F('ingridients_amount__amount__sum')
+            name=F('ingredients__name'),
+            units=F('ingredients__measurement_unit'),
+            total=F('ingredients_amount__amount__sum')
         ).order_by('name')
 
         text = '\n'.join(
             f'{ingt["name"]}: {ingt["total"]} {ingt["units"]}'
-            for ingt in ingridients_queryset
+            for ingt in ingredients_queryset
         )
         filename = 'shopping_cart.txt'
         response = HttpResponse(text, content_type='text/plain')
@@ -145,7 +179,7 @@ class RecipeViewSet(viewsets.ModelViewSet, M2MCreateDelete):
         recipe = get_object_or_404(Recipe, pk=pk)
 
         return self.m2m_create_delete(
-            obj1_m2m_manager=user.shopping_cart,
+            obj1_m2m_manager=user.favorites,
             obj2=recipe,
             request=request,
             serializer=ShortRecipeSerializer,
@@ -162,11 +196,11 @@ class RecipeViewSet(viewsets.ModelViewSet, M2MCreateDelete):
         serializer.save(author=self.request.user)
 
 
-class IngridientViewSet(viewsets.ReadOnlyModelViewSet):
-    serializer_class = IngridientSerializer
+class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = IngredientSerializer
 
     def get_queryset(self):
-        queryset = Ingridient.objects.all()
+        queryset = Ingredient.objects.all()
 
         searched_name = self.request.query_params.get('name')
         if searched_name:

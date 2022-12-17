@@ -4,13 +4,13 @@ import json
 from django.conf import settings
 from django.db import migrations
 
-def load_initial_ingridient_data(apps, schema_editor):
+def load_initial_ingredient_data(apps, schema_editor):
 
     data_file = (
         settings.BASE_DIR.parent / settings.RECIPES['ingredients_data_file']
     )
 
-    Ingrigient = apps.get_model('recipes', 'Ingridient')
+    Ingrigient = apps.get_model('recipes', 'Ingredient')
 
     with open(data_file, encoding='utf-8') as ingredients_file:
         ingredients_list = json.load(ingredients_file)
@@ -33,5 +33,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(load_initial_ingridient_data)
+        migrations.RunPython(load_initial_ingredient_data)
     ]

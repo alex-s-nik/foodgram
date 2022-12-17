@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import AmountIngridients, Ingridient, Recipe, Tag
+from .models import AmountIngredients, Ingredient, Recipe, Tag
 
 
 class RecipeAdmin(admin.ModelAdmin):
@@ -12,12 +12,12 @@ class RecipeAdmin(admin.ModelAdmin):
         return obj.favorite_users.count()
 
 
-class IngridientAdmin(admin.ModelAdmin):
+class IngredientAdmin(admin.ModelAdmin):
     list_display = ('name', 'measurement_unit',)
     list_filter = ('name',)
 
 
-admin.site.register(AmountIngridients)
-admin.site.register(Ingridient, IngridientAdmin)
+admin.site.register(AmountIngredients)
+admin.site.register(Ingredient, IngredientAdmin)
 admin.site.register(Recipe, RecipeAdmin)
 admin.site.register(Tag)

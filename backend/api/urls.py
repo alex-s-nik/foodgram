@@ -1,7 +1,7 @@
 from django.urls import include, path
 from rest_framework.routers import SimpleRouter
 
-from .views import IngridientViewSet, RecipeViewSet, TagViewSet, UserViewSet
+from .views import IngredientViewSet, RecipeViewSet, TagViewSet, UserViewSet
 
 router = SimpleRouter()
 
@@ -24,9 +24,9 @@ router.register(
 )
 
 router.register(
-    'ingridients',
-    IngridientViewSet,
-    basename='ingridients',
+    'ingredients',
+    IngredientViewSet,
+    basename='ingredients',
 )
 
 urlpatterns = [
