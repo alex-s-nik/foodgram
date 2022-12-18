@@ -23,6 +23,9 @@ class Tag(models.Model):
         verbose_name = 'Тег'
         verbose_name_plural = 'Теги'
 
+    def __str__(self):
+        return f'{self.name}'
+
 
 class Ingredient(models.Model):
     '''Ингридиент в рецепте'''
@@ -62,6 +65,10 @@ class AmountIngredients(models.Model):
         verbose_name = 'Количество ингридиентов'
         verbose_name_plural = 'Количество ингридиентов'
 
+    def __str__(self):
+        return (f'{self.recipe.name}: {self.ingredient.name}'
+                f' - {self.amount}, {self.ingredient.measurement_unit}')
+
 
 class Recipe(models.Model):
     '''Рецепт блюда'''
@@ -97,7 +104,9 @@ class Recipe(models.Model):
     cooking_time = models.PositiveSmallIntegerField(
         verbose_name='Время приготовления, мин'
     )
+    pub_date = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        ordering = ['-pub_date']
         verbose_name = 'Рецепт'
         verbose_name_plural = 'Рецепты'
