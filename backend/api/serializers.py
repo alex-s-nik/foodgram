@@ -1,14 +1,12 @@
 import base64
 
-from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
 from djoser.serializers import UserCreateSerializer as BaseUserCreateSerilizer
 from djoser.serializers import UserSerializer as BaseUserSerializer
 from rest_framework import serializers
 
 from recipes.models import AmountIngredients, Ingredient, Recipe, Tag
-
-User = get_user_model()
+from users.models import User
 
 
 class UserSerializer(BaseUserSerializer):

@@ -1,4 +1,3 @@
-from django.contrib.auth import get_user_model
 from django.db.models import Case, F, Sum, Value, When
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
@@ -9,14 +8,13 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from recipes.models import Ingredient, Recipe, Tag
+from users.models import User
 
 from .mixins import M2MCreateDelete
 from .pagination import PageLimitPagination
 from .serializers import (CreateRecipeSerializer, IngredientSerializer,
                           RecipeSerializer, ShortRecipeSerializer,
                           TagSerializer, UserSerializer, UserSubscriptionsSerializer)
-
-User = get_user_model()
 
 
 class UserViewSet(BaseUserViewSet, M2MCreateDelete):
