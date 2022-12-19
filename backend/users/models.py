@@ -48,5 +48,9 @@ class Subscriber(models.Model):
             models.CheckConstraint(
                 name='impossible_follow_self',
                 check=~models.Q(author=models.F('follower'))
+            ),
+            models.UniqueConstraint(
+                name='unique_follow',
+                fields=('author', 'follower',)
             )
         ]
