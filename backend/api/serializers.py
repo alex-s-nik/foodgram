@@ -24,8 +24,7 @@ class UserSerializer(BaseUserSerializer):
         model = User
 
     def get_is_described(self, obj):
-        request = self.context['request']
-        user = request.user
+        user = self.context['request'].user
         if user.is_anonymous:
             return False
         return user.subscribers.filter(id=obj.id).exists()
