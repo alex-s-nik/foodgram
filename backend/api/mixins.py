@@ -77,7 +77,7 @@ class M2MAddRemoveHelper:
                 {'errors': fail_message}
             )
         
-        context = object_serializer.get_serializer_context()
+        context = self.get_serializer_context()
         return Response(
             object_serializer(instance=object_for_action, context=context).data,
             status=status.HTTP_201_CREATED
