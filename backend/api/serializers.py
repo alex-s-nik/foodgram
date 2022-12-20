@@ -10,7 +10,7 @@ from users.models import User
 
 
 class UserSerializer(BaseUserSerializer):
-    is_described = serializers.SerializerMethodField()
+    is_subscribed = serializers.SerializerMethodField()
 
     class Meta:
         fields = (
@@ -19,15 +19,15 @@ class UserSerializer(BaseUserSerializer):
             'username',
             'first_name',
             'last_name',
-            'is_described'
+            'is_subscribed'
         )
         model = User
 
-    def get_is_described(self, obj):
+    def get_is_subscribed(self, obj):
         user = self.context['request'].user
         if user.is_anonymous:
             return False
-        return user.subscribers.filter(id=obj.id).exists()
+        return user.subscribed.filter(id=obj.id).exists()
 
 
 class UserCreateSerializer(BaseUserCreateSerilizer):
