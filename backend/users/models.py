@@ -22,6 +22,12 @@ class User(AbstractUser):
         verbose_name='Подписчики'
     )
 
+    REQUIRED_FIELDS = [
+        'email',
+        'first_name',
+        'last_name',
+    ]
+
     @property
     def is_admin(self):
         return self.is_superuser

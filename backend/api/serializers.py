@@ -41,11 +41,6 @@ class UserCreateSerializer(BaseUserCreateSerilizer):
             'password'
         )
         model = User
-        extra_kwargs = {
-            'first_name': {'required': True, 'allow_blank': False},
-            'last_name': {'required': True, 'allow_blank': False},
-            'email': {'required': True, 'allow_blank': False}
-        }
 
 
 class TagSerializer(serializers.ModelSerializer):
