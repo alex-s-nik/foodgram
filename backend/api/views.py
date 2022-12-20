@@ -4,36 +4,37 @@ from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet as BaseUserViewSet
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from recipes.models import Ingredient, Recipe, Tag
 from users.models import User
 
-from .mixins import M2MCreateDelete
+from .mixins import M2MAddRemoveHelper
 from .pagination import PageLimitPagination
 from .serializers import (CreateRecipeSerializer, IngredientSerializer,
                           RecipeSerializer, ShortRecipeSerializer,
                           TagSerializer, UserSerializer, UserSubscriptionsSerializer)
 
 
-class UserViewSet(BaseUserViewSet, M2MCreateDelete):
+class UserViewSet(BaseUserViewSet, M2MAddRemoveHelper):
     pagination_class = PageLimitPagination
 
     @action(detail=True, methods=['post', 'delete'])
     def subscribe(self, request, id=None):
         subscriber = request.user
         author = get_object_or_404(User, id=id)
-
-        return self.m2m_create_delete(
-            obj1_m2m_manager=author.subscribers,
-            obj2=subscriber,
-            request=request,
-            serializer=UserSerializer,
-            errors={
-                'create_fail': 'Вы уже подписаны на этого пользователя',
-                'delete_fail': 'Вы не подписаны на этого пользователя'
-            }
+        fail_messages = {
+            'add_fail': 'Вы уже подписаны на этого пользователя',
+            'remove_fail': 'Вы не подписаны на этого пользователя'
+        }
+        return self.m2m_add_remove(
+            m2m_manager_of_changing_object=author.subscribers,
+            object_for_action=subscriber,
+            object_serializer=UserSerializer,
+            request_method=request.method,
+            fail_messages=fail_messages
         )
 
     @action(
@@ -60,21 +61,13 @@ class UserViewSet(BaseUserViewSet, M2MCreateDelete):
         serializer = self.get_serializer(queryset, many=True, context=context)
         return Response(serializer.data)
 
-        return Response(
-            serializer(
-            user.subscribed.all(),
-            many=True,
-            context=context
-        ).data, status=status.HTTP_200_OK)
-
-
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
 
 
-class RecipeViewSet(viewsets.ModelViewSet, M2MCreateDelete):
+class RecipeViewSet(viewsets.ModelViewSet, M2MAddRemoveHelper):
     pagination_class = PageLimitPagination
     serializer_classes = {
         'list': RecipeSerializer,
@@ -134,16 +127,16 @@ class RecipeViewSet(viewsets.ModelViewSet, M2MCreateDelete):
     def shopping_cart(self, request, pk=None):
         user = request.user
         recipe = get_object_or_404(Recipe, pk=pk)
-
-        return self.m2m_create_delete(
-            obj1_m2m_manager=user.shopping_cart,
-            obj2=recipe,
-            request=request,
-            serializer=ShortRecipeSerializer,
-            errors={
-                'create_fail': 'Рецепт уже был добавлен в корзину',
-                'delete_fail': 'Этого рецепта нет в корзине'
-            }
+        fail_messages = {
+            'add_fail': 'Рецепт уже был добавлен в корзину',
+            'remove_fail': 'Этого рецепта нет в корзине'
+        }
+        return self.m2m_add_remove(
+            m2m_manager_of_changing_object=user.shopping_cart,
+            object_for_action=recipe,
+            object_serializer=ShortRecipeSerializer,
+            request_method=request.method,
+            fail_messages=fail_messages
         )
 
     @action(detail=False, methods=['get'])
@@ -175,16 +168,16 @@ class RecipeViewSet(viewsets.ModelViewSet, M2MCreateDelete):
     def favorite(self, request, pk=None):
         user = request.user
         recipe = get_object_or_404(Recipe, pk=pk)
-
-        return self.m2m_create_delete(
-            obj1_m2m_manager=user.favorites,
-            obj2=recipe,
-            request=request,
-            serializer=ShortRecipeSerializer,
-            errors={
-                'create_fail': 'Рецепт уже был добавлен в избранное',
-                'delete_fail': 'Этого рецепта нет в избранном'
-            }
+        fail_messages = {
+            'add_fail': 'Рецепт уже был добавлен в избранное',
+            'remove_fail': 'Этого рецепта нет в избранном'
+        }
+        return self.m2m_add_remove(
+            m2m_manager_of_changing_object=user.favorites,
+            object_for_action=recipe,
+            object_serializer=ShortRecipeSerializer,
+            request_method=request.method,
+            fail_messages=fail_messages
         )
 
     def perform_create(self, serializer):
