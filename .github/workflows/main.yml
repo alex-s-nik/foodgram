@@ -37,7 +37,7 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           script: |
             sudo docker-compose stop
-            sudo docker-compose rm web
+            sudo docker-compose rm backend
             sudo docker pull alexsnik/foodgram
             touch .env
             echo DB_ENGINE=${{ secrets.DB_ENGINE }} >> .env
