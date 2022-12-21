@@ -49,7 +49,4 @@ jobs:
             echo DB_PORT=${{ secrets.DB_PORT }} >> .env
 
             echo DJANGO_SECRET_KEY="${{ secrets.DJANGO_SECRET_KEY }}" >> .env
-
-            echo DJANGO_SECRET_KEY=${{ secrets.DJANGO_SECRET_KEY }} >> .env
->>>>>>> c54053de57cdceec8a06401ea646e61266c89c92
             sudo docker-compose -f ./infra/docker-compose.yml up -d
