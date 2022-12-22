@@ -132,6 +132,7 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.TokenAuthentication',
     ),
+    'UPLOADED_FILES_USE_URL': False,
 }
 
 DJOSER = {
