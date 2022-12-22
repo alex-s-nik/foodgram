@@ -155,3 +155,5 @@ MEDIA_ROOT = BASE_DIR.parent / 'media'
 RECIPES = {
     'ingredients_data_file': 'data/ingredients.json'
 }
+
+CSRF_TRUSTED_ORIGINS = ['http://fgram.ddns.net']
