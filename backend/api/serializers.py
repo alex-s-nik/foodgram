@@ -1,12 +1,11 @@
-import base64
-
-from django.core.files.base import ContentFile
 from djoser.serializers import UserCreateSerializer as BaseUserCreateSerilizer
 from djoser.serializers import UserSerializer as BaseUserSerializer
 from rest_framework import serializers
 
 from recipes.models import AmountIngredients, Ingredient, Recipe, Tag
 from users.models import User
+
+from .fields import Base64ImageField
 
 
 class UserSerializer(BaseUserSerializer):
@@ -80,6 +79,7 @@ class RecipeSerializer(serializers.ModelSerializer):
     ingredients = serializers.SerializerMethodField()
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
+    image = Base64ImageField()
 
     class Meta:
         fields = (
@@ -116,6 +116,7 @@ class RecipeSerializer(serializers.ModelSerializer):
 
 
 class ShortRecipeSerializer(serializers.ModelSerializer):
+    image = Base64ImageField()
     class Meta:
         fields = ('id', 'name', 'image', 'cooking_time')
         model = Recipe
@@ -134,15 +135,6 @@ class CreateIngredientsInRecipeSerializer(serializers.ModelSerializer):
     class Meta:
         model = AmountIngredients
         fields = ('recipe', 'id', 'amount')
-
-
-class Base64ImageField(serializers.ImageField):
-    def to_internal_value(self, data):
-        if isinstance(data, str) and data.startswith('data:image'):
-            format, imgstr = data.split(';base64,')
-            ext = format.split('/')[-1]
-            data = ContentFile(base64.b64decode(imgstr), name='temp.' + ext)
-        return super().to_internal_value(data)
 
 
 class CreateRecipeSerializer(serializers.ModelSerializer):
