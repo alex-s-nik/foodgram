@@ -119,7 +119,7 @@ class RecipeViewSet(viewsets.ModelViewSet, M2MAddRemoveHelper):
 
         tags = self.request.query_params.getlist('tags')
         if tags:
-            queryset = queryset.filter(tags__slug__in=tags)
+            queryset = queryset.filter(tags__slug__in=tags).distinct()
 
         return queryset
 
