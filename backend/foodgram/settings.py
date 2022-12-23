@@ -157,4 +157,4 @@ RECIPES = {
     'ingredients_data_file': 'data/ingredients.json'
 }
 
-CSRF_TRUSTED_ORIGINS = ['http://fgram.ddns.net']
+CSRF_TRUSTED_ORIGINS = ['https://fgram.ddns.net']
