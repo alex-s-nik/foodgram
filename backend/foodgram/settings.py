@@ -149,7 +149,7 @@ DJOSER = {
     }
 }
 
-MEDIA_URL = '/media/'
+MEDIA_URL = os.getenv('DJANGO_MEDIA_URL', 'media/')
 MEDIA_ROOT = 'media/'
 
 # настройки для приложения recipes
