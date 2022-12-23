@@ -76,8 +76,8 @@ WSGI_APPLICATION = 'foodgram.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': os.getenv('DB_ENGINE', 'django.db.backends.postgresql'),
-        'NAME': os.getenv('DB_NAME', 'postgres'),
+        'ENGINE': os.getenv('DB_ENGINE',default='django.db.backends.sqlite3'),
+        'NAME': os.getenv('DB_NAME', default=BASE_DIR / 'db.sqlite3'),
         'USER': os.getenv('POSTGRES_USER', 'postgres'),
         'PASSWORD': os.getenv('POSTGRES_PASSWORD', 'postgres'),
         'HOST': os.getenv('DB_HOST', 'db'),
@@ -132,7 +132,7 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.TokenAuthentication',
     ),
-    'UPLOADED_FILES_USE_URL': False,
+    #'UPLOADED_FILES_USE_URL': False,
 }
 
 DJOSER = {
@@ -150,7 +150,7 @@ DJOSER = {
 }
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media/'
+MEDIA_ROOT = 'media/'
 
 # настройки для приложения recipes
 RECIPES = {
