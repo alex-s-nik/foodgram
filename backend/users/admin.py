@@ -6,7 +6,7 @@ from .models import User
 
 
 class CustomUserAdmin(UserAdmin):
-    list_filter = ('email', 'username')
+    search_fields = ('email', 'username')
 
 
 admin.site.register(User, CustomUserAdmin)
