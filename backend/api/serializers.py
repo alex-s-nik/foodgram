@@ -213,7 +213,7 @@ class UserSubscriptionsSerializer(UserSerializer):
     recipes_count = serializers.SerializerMethodField()
 
     def get_recipes(self, obj):
-        recipes_limit = self.context.get('recipes_limit', None)
+        recipes_limit = int(self.context.get('recipes_limit', None))
         return ShortRecipeSerializer(
             obj.recipes.all()[:recipes_limit],
             many=True
