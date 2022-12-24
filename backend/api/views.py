@@ -49,7 +49,7 @@ class UserViewSet(BaseUserViewSet, M2MAddRemoveHelper):
         recipes_limit = self.request.query_params.get('recipes_limit')
         queryset = user.subscribed.all()
         context = {
-            'recires_limit': recipes_limit,
+            'recipes_limit': recipes_limit,
             'request': request
         }
 
