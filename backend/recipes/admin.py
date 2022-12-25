@@ -4,10 +4,13 @@ from .models import AmountIngredients, Ingredient, Recipe, Tag
 
 
 class RecipeAdmin(admin.ModelAdmin):
-    list_display = ('name', 'author', 'count_field',)
-    search_fields = ('name','author__username',)
-    filter_horizontal = ('tags',)
+    list_display = ('name', 'author', 'count_field', 'recipe_tags')
+    search_fields = ('name','author__username', 'tags__name',)
     list_filter = ('tags', 'author',)
+
+    @admin.display(description='Тэги')
+    def recipe_tags(self, obj):
+        return ', '.join(tag.name for tag in obj.tags.all())
 
     @admin.display(description='Добавлены в избранное')
     def count_field(self, obj):
