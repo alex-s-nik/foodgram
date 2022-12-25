@@ -5,7 +5,9 @@ from .models import AmountIngredients, Ingredient, Recipe, Tag
 
 class RecipeAdmin(admin.ModelAdmin):
     list_display = ('name', 'author', 'count_field',)
-    search_fields = ('author', 'name', 'tags',)
+    search_fields = ('name',)
+    filter_horizontal = ('tags',)
+    list_filter = ('tags', 'author',)
 
     @admin.display(description='Добавлены в избранное')
     def count_field(self, obj):
