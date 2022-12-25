@@ -5,7 +5,7 @@ from .models import AmountIngredients, Ingredient, Recipe, Tag
 
 class RecipeAdmin(admin.ModelAdmin):
     list_display = ('name', 'author', 'count_field',)
-    search_fields = ('name',)
+    search_fields = ('name','author__username',)
     filter_horizontal = ('tags',)
     list_filter = ('tags', 'author',)
 
