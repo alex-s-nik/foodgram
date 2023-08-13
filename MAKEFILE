@@ -1,0 +1,6 @@
+run:
+	docker compose -f ./infra/docker-compose.yml up -d
+
+tune:
+	docker compose -f ./infra/docker-compose.yml run --rm backend python manage.py migrate
+	docker compose -f ./infra/docker-compose.yml run --rm backend python manage.py collectstatic
