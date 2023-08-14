@@ -19,19 +19,11 @@ services:
       - db
     env_file:
       - ../.env
-  frontend:
+
+  nginx:
     build:
       context: ./frontend
       dockerfile: ./Dockerfile
-    volumes:
-      - static_value:/app/result_build/build/static/
-      - frontend:/app/result_build/build/
-    depends_on:
-      - backend
-      - nginx
-  
-  nginx:
-    image: nginx:1.19.3
     ports:
       - "80:80"
     volumes:
@@ -39,10 +31,8 @@ services:
       - ./docs/:/usr/share/nginx/html/api/docs/
       - static_value:/usr/share/nginx/html/static/
       - media_value:/var/html/media/
-      - frontend:/usr/share/nginx/html/
     depends_on:
       - backend
 volumes:
   static_value:
   media_value:
-  frontend:
