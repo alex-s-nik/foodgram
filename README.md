@@ -116,10 +116,7 @@ https://fgram.ddns.net/api/docs/
 - добавлять/удалять/редактировать ингредиенты.
 - добавлять/удалять/редактировать теги.
 
-Все эти функции реализованы в стандартной админ-панели Django.
-```
-https://fgram.ddns.net/admin/
-```
+
 ### Настройки админки
 В интерфейс админ-зоны выведены необходимые поля моделей и настроены фильтры.
 Модели:
@@ -138,12 +135,7 @@ https://fgram.ddns.net/admin/
 - Добавлен фильтр по названию.
 
 ## Технические требования и инфраструктура
-Проект использует базу данных PostgreSQL.
-
-Проект запускается в четырех контейнерах (nginx, certbot, PostgreSQL и Django). Образ с проектом запушен на Docker Hub.
-```
-https://hub.docker.com/repository/docker/alexsnik/foodgram
-```
+Проект запускается в трех контейнерах (nginx, PostgreSQL и Django).
 
 Для развертывания проекта необходим .env-файл со следующими переменными:
 
@@ -155,9 +147,4 @@ https://hub.docker.com/repository/docker/alexsnik/foodgram
 - DJANGO_SECRET_KEY - секретный ключ для Django-проекта
 - DJANGO_MEDIA_URL - url-путь, по которому доступны медиа-файлы
 
-В данный момент есть администратор со следующими данными:
- Пользователь: amaroot
- почта: root@example.org
- пароль: Petrov55
-
- адрес сайта https://fgram.ddns.net
+Пример в файле env.example
