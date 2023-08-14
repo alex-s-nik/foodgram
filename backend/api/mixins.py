@@ -9,11 +9,10 @@ from rest_framework.serializers import ModelSerializer, SerializerMetaclass
 
 
 class M2MAddRemoveHelper:
-    '''
-    Вспомогательный миксин для добавления объекта в другой
+    """Вспомогательный миксин для добавления объекта в другой
     или удаления объекта из другого,
     связанного соотношением Many-to-Many.
-    '''
+    """
 
     def m2m_add_remove(
         self,
@@ -23,7 +22,7 @@ class M2MAddRemoveHelper:
         request_method: str,
         fail_messages: Dict[str, str],
     ) -> Response:
-        '''
+        """
         Добавляет в объект другой объект, связанный
         отношением Many-to-Many
 
@@ -39,7 +38,7 @@ class M2MAddRemoveHelper:
         request_method - название HTTP-метода из запроса на действие
 
         fail_message - сообщение об ошибке при добавлении
-        '''
+        """
         if request_method == 'POST':
             return self._m2m_add(
                 m2m_manager_of_changing_object=m2m_manager_of_changing_object,

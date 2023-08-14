@@ -3,26 +3,26 @@ from django.db import models
 
 
 class User(AbstractUser):
-    """Пользователь системы"""
+    """Пользователь системы."""
 
     favorites = models.ManyToManyField(
-        to="recipes.Recipe", related_name="favorite_users", verbose_name="Избранное"
+        to='recipes.Recipe', related_name='favorite_users', verbose_name='Избранное'
     )
     shopping_cart = models.ManyToManyField(
-        to="recipes.Recipe", related_name="cart_users", verbose_name="Список покупок"
+        to='recipes.Recipe', related_name='cart_users', verbose_name='Список покупок'
     )
     subscribers = models.ManyToManyField(
-        to="self",
-        related_name="subscribed",
-        through="Subscriber",
+        to='self',
+        related_name='subscribed',
+        through='Subscriber',
         symmetrical=False,
-        verbose_name="Подписчики",
+        verbose_name='Подписчики',
     )
 
     REQUIRED_FIELDS = [
-        "email",
-        "first_name",
-        "last_name",
+        'email',
+        'first_name',
+        'last_name',
     ]
 
     @property
@@ -30,29 +30,31 @@ class User(AbstractUser):
         return self.is_superuser
 
     class Meta:
-        verbose_name = "Пользователь"
-        verbose_name_plural = "Пользователи"
+        verbose_name = 'Пользователь'
+        verbose_name_plural = 'Пользователи'
 
 
 class Subscriber(models.Model):
+    """Класс для создания M2M-отношения подписки пользователей."""
+
     author = models.ForeignKey(
-        to=User, on_delete=models.CASCADE, related_name="followers"
+        to=User, on_delete=models.CASCADE, related_name='followers'
     )
     follower = models.ForeignKey(
-        to=User, on_delete=models.CASCADE, related_name="authors"
+        to=User, on_delete=models.CASCADE, related_name='authors'
     )
 
     class Meta:
         constraints = [
             models.CheckConstraint(
-                name="impossible_follow_self",
-                check=~models.Q(author=models.F("follower")),
+                name='impossible_follow_self',
+                check=~models.Q(author=models.F('follower')),
             ),
             models.UniqueConstraint(
-                name="unique_follow",
+                name='unique_follow',
                 fields=(
-                    "author",
-                    "follower",
+                    'author',
+                    'follower',
                 ),
             ),
         ]
