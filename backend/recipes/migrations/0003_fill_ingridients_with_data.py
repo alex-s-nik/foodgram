@@ -2,14 +2,13 @@
 
 import json
 import os
+
 from django.conf import settings
 from django.db import migrations
 
-def load_initial_ingredient_data(apps, schema_editor):
 
-    data_file = (
-        settings.BASE_DIR.parent / settings.RECIPES['ingredients_data_file']
-    )
+def load_initial_ingredient_data(apps, schema_editor):
+    data_file = settings.BASE_DIR.parent / settings.RECIPES['ingredients_data_file']
 
     if not os.path.exists(data_file):
         return
@@ -21,8 +20,7 @@ def load_initial_ingredient_data(apps, schema_editor):
 
         ingredients = [
             Ingrigient(
-                name=ingredient['name'],
-                measurement_unit = ingredient['measurement_unit']
+                name=ingredient['name'], measurement_unit=ingredient['measurement_unit']
             )
             for ingredient in ingredients_list
         ]
@@ -31,11 +29,8 @@ def load_initial_ingredient_data(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('recipes', '0002_initial'),
     ]
 
-    operations = [
-        migrations.RunPython(load_initial_ingredient_data)
-    ]
+    operations = [migrations.RunPython(load_initial_ingredient_data)]

@@ -5,8 +5,15 @@ from .models import AmountIngredients, Ingredient, Recipe, Tag
 
 class RecipeAdmin(admin.ModelAdmin):
     list_display = ('name', 'author', 'count_field', 'recipe_tags')
-    search_fields = ('name','author__username', 'tags__name',)
-    list_filter = ('tags', 'author',)
+    search_fields = (
+        'name',
+        'author__username',
+        'tags__name',
+    )
+    list_filter = (
+        'tags',
+        'author',
+    )
 
     @admin.display(description='Тэги')
     def recipe_tags(self, obj):
@@ -18,7 +25,10 @@ class RecipeAdmin(admin.ModelAdmin):
 
 
 class IngredientAdmin(admin.ModelAdmin):
-    list_display = ('name', 'measurement_unit',)
+    list_display = (
+        'name',
+        'measurement_unit',
+    )
     search_fields = ('name',)
 
 

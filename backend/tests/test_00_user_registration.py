@@ -3,6 +3,7 @@ from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
+
 class Test00UserRegistration:
     user_registration_url = '/api/users/'
 
@@ -11,25 +12,20 @@ class Test00UserRegistration:
         request_type = 'POST'
         response = client.post(self.user_registration_url)
 
-        assert response.status_code != 404, (
-            f'Страница `{self.user_registration_url}` не найдена, проверьте этот адрес в *urls.py*'
-        )
+        assert (
+            response.status_code != 404
+        ), f'Страница `{self.user_registration_url}` не найдена, проверьте этот адрес в *urls.py*'
         code = 400
         assert response.status_code == code, (
             f'Проверьте, что при {request_type} запросе `{self.user_registration_url}` без параметров '
             f'не создается пользователь и возвращается статус {code}'
         )
         response_json = response.json()
-        empty_fields = [
-            'email',
-            'username',
-            'first_name',
-            'last_name',
-            'password'
-        ]
+        empty_fields = ['email', 'username', 'first_name', 'last_name', 'password']
         for field in empty_fields:
-            assert (field in response_json.keys()
-                    and isinstance(response_json[field], list)), (
+            assert field in response_json.keys() and isinstance(
+                response_json[field], list
+            ), (
                 f'Проверьте, что при {request_type} запросе `{self.user_registration_url}` без параметров '
                 f'в ответе есть сообщение о том, какие поля заполнены неправильно'
             )
@@ -41,15 +37,15 @@ class Test00UserRegistration:
             'email': 'test@email.fake',
             'first_name': 'Тестовоеимя',
             'last_name': 'Тестоваяфамилия',
-            'password': 'Qwerty123'
+            'password': 'Qwerty123',
         }
 
         request_type = 'POST'
         response = client.post(self.user_registration_url)
 
-        assert response.status_code != 404, (
-            f'Страница `{self.user_registration_url}` не найдена, проверьте этот адрес в *urls.py*'
-        )
+        assert (
+            response.status_code != 404
+        ), f'Страница `{self.user_registration_url}` не найдена, проверьте этот адрес в *urls.py*'
 
         code = 400
 
@@ -63,7 +59,7 @@ class Test00UserRegistration:
                 f'Проверьте, что при {request_type} запросе `{self.user_registration_url}` без {field} '
                 f'нельзя создать пользователя и возвращается статус {code}'
             )
-    
+
     @pytest.mark.django_db(transaction=True)
     def test_00_user_signup(self, client):
         valid_data = {
@@ -71,16 +67,16 @@ class Test00UserRegistration:
             'email': 'test6@email.fake',
             'first_name': 'Тестовоеимя6',
             'last_name': 'Тестоваяфамилия6',
-            'password': 'Qwerty1236'
+            'password': 'Qwerty1236',
         }
 
         request_type = 'POST'
 
         response = client.post(self.user_registration_url, data=valid_data)
 
-        assert response.status_code != 404, (
-            f'Страница `{self.user_registration_url}` не найдена, проверьте этот адрес в *urls.py*'
-        )
+        assert (
+            response.status_code != 404
+        ), f'Страница `{self.user_registration_url}` не найдена, проверьте этот адрес в *urls.py*'
 
         code = 201
         print(response.json())
@@ -90,9 +86,10 @@ class Test00UserRegistration:
         )
 
         assert all(
-                field in response.json() and valid_data[field] == response.json()[field] 
-                for field in valid_data if field != 'password'
-            ), (
+            field in response.json() and valid_data[field] == response.json()[field]
+            for field in valid_data
+            if field != 'password'
+        ), (
             f'Проверьте, что при {request_type} запросе `{self.user_registration_url}` с валидными данными '
             f'создается пользователь и возвращается корректные данные пользователя {code}'
         )
@@ -103,8 +100,6 @@ class Test00UserRegistration:
             f'создается пользователь и он доступен в БД'
         )
 
-        
-
     @pytest.mark.django_db(transaction=True)
     def test_00_unique_email_and_username(self, client):
         username1 = 'testusername1'
@@ -112,12 +107,12 @@ class Test00UserRegistration:
         email1 = 'test1@email.fake'
         email2 = 'test2@email.fake'
 
-        valid_data= {
+        valid_data = {
             'username': username1,
             'email': email1,
             'first_name': 'Тестовоеимя',
             'last_name': 'Тестоваяфамилия',
-            'password': 'Qwerty123'
+            'password': 'Qwerty123',
         }
 
         request_type = 'POST'
@@ -137,7 +132,7 @@ class Test00UserRegistration:
         valid_data['email'] = email1
         valid_data['username'] = username2
         response = client.post(self.user_registration_url, data=valid_data)
-        
+
         assert response.status_code == code, (
             f'Проверьте, что при {request_type} запросе `{self.user_registration_url}` нельзя создать '
             f'пользователя, email которого уже зарегистрирован и возвращается статус {code}'

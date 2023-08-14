@@ -12,7 +12,7 @@ AUTH_USER_MODEL = 'users.User'
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv(
     'DJANGO_SECRET_KEY',
-    'django-insecure-!jhqj^pn5f5!696ll97r8jze@(n)8p%wm=ubi6cv1&8j@35*o)'
+    'django-insecure-!jhqj^pn5f5!696ll97r8jze@(n)8p%wm=ubi6cv1&8j@35*o)',
 )
 
 # SECURITY WARNING: don't run with debug turned on in production!
@@ -30,11 +30,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
     'rest_framework',
     'rest_framework.authtoken',
     'djoser',
-
     'recipes.apps.RecipesConfig',
     'users.apps.UsersConfig',
     'api.apps.ApiConfig',
@@ -76,12 +74,12 @@ WSGI_APPLICATION = 'foodgram.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': os.getenv('DB_ENGINE',default='django.db.backends.sqlite3'),
+        'ENGINE': os.getenv('DB_ENGINE', default='django.db.backends.sqlite3'),
         'NAME': os.getenv('DB_NAME', default=BASE_DIR / 'db.sqlite3'),
         'USER': os.getenv('POSTGRES_USER', 'postgres'),
         'PASSWORD': os.getenv('POSTGRES_PASSWORD', 'postgres'),
         'HOST': os.getenv('DB_HOST', 'db'),
-        'PORT': os.getenv('DB_PORT', '5432')
+        'PORT': os.getenv('DB_PORT', '5432'),
     }
 }
 
@@ -146,15 +144,13 @@ DJOSER = {
         'user': 'api.serializers.UserSerializer',
         'user_create': 'api.serializers.UserCreateSerializer',
         'current_user': 'api.serializers.UserSerializer',
-    }
+    },
 }
 
 MEDIA_URL = os.getenv('DJANGO_MEDIA_URL', 'media/')
 MEDIA_ROOT = 'media/'
 
 # настройки для приложения recipes
-RECIPES = {
-    'ingredients_data_file': 'data/ingredients.json'
-}
+RECIPES = {'ingredients_data_file': 'data/ingredients.json'}
 
 CSRF_TRUSTED_ORIGINS = ['https://fgram.ddns.net']

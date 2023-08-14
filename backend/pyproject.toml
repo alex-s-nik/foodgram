@@ -1,4 +1,5 @@
 [tool.black]
+    skip-string-normalization = true
     py36 = true
     include = '\.pyi?$'
     exclude = '''
