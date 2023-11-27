@@ -1,9 +1,16 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 
 class User(AbstractUser):
     """Пользователь системы."""
+
+    # переопределение полей email, first_name и last_name для того, чтобы они стало обязательным
+    # параметры полей те же, что и в AbstractUser, кроме blank=True
+    email = models.EmailField(_("email address"))
+    first_name = models.CharField(_("first name"), max_length=150)
+    last_name = models.CharField(_("last name"), max_length=150)
 
     favorites = models.ManyToManyField(
         to='recipes.Recipe', related_name='favorite_users', verbose_name='Избранное'
@@ -22,8 +29,10 @@ class User(AbstractUser):
     REQUIRED_FIELDS = [
         'email',
         'first_name',
-        'last_name',
+        'last_name'
     ]
+
+    USERNAME_FIELD = 'username'
 
     @property
     def is_admin(self):
