@@ -4,3 +4,6 @@ run:
 tune:
 	docker compose -f ./infra/docker-compose.yml run --rm backend python manage.py migrate
 	docker compose -f ./infra/docker-compose.yml run --rm backend python manage.py collectstatic
+
+make_test_db:
+	docker compose -f ./infra/docker-compose.yml run --rm db psql -U postgres -c "CREATE DATABASE test_db"
