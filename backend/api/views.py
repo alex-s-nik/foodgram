@@ -8,7 +8,10 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from users.models import User
+
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 from .mixins import M2MAddRemoveHelper
 from .pagination import PageLimitPagination
