@@ -70,7 +70,7 @@ class M2MAddRemoveHelper:
         try:
             m2m_manager_of_changing_object.add(object_for_action)
         except IntegrityError as e:
-            raise ValidationError({'errors': fail_message})
+            raise ValidationError({'errors': 'Error %s. %s' % (e, fail_message)})
 
         context = self.get_serializer_context()
         return Response(

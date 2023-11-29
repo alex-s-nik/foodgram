@@ -1,29 +1,23 @@
+from django.contrib.auth import get_user_model
 from django.db.models import Case, F, Sum, Value, When
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet as BaseUserViewSet
-from recipes.models import Ingredient, Recipe, Tag
-from rest_framework import status, viewsets
+from rest_framework import viewsets
 from rest_framework.decorators import action
-from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from django.contrib.auth import get_user_model
-
-User = get_user_model()
+from recipes.models import Ingredient, Recipe, Tag
 
 from .mixins import M2MAddRemoveHelper
 from .pagination import PageLimitPagination
-from .serializers import (
-    CreateRecipeSerializer,
-    IngredientSerializer,
-    RecipeSerializer,
-    ShortRecipeSerializer,
-    TagSerializer,
-    UserSerializer,
-    UserSubscriptionsSerializer,
-)
+from .serializers import (CreateRecipeSerializer, IngredientSerializer,
+                          RecipeSerializer, ShortRecipeSerializer,
+                          TagSerializer, UserSerializer,
+                          UserSubscriptionsSerializer)
+
+User = get_user_model()
 
 
 class UserViewSet(BaseUserViewSet, M2MAddRemoveHelper):

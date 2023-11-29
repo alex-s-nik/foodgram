@@ -5,6 +5,8 @@ from django.contrib.auth.models import Group
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
+
+
 class CustomUserAdmin(UserAdmin):
     search_fields = ('email', 'username')
 
