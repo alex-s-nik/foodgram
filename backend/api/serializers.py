@@ -9,10 +9,18 @@ from .fields import Base64ImageField
 
 
 class UserSerializer(BaseUserSerializer):
-    is_subscribed = serializers.SerializerMethodField()
+    """Сериалайзер Пользователя."""
+    is_subscribed = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
-        fields = ('email', 'id', 'username', 'first_name', 'last_name', 'is_subscribed')
+        fields = (
+            'email',
+            'id',
+            'username',
+            'first_name',
+            'last_name',
+            'is_subscribed',
+        )
         model = User
 
     def get_is_subscribed(self, obj):
@@ -23,24 +31,28 @@ class UserSerializer(BaseUserSerializer):
 
 
 class UserCreateSerializer(BaseUserCreateSerilizer):
+    """Сериалайзер для создания Пользователя."""
     class Meta:
-        fields = ('id', 'email', 'username', 'first_name', 'last_name', 'password')
+        fields = ('email', 'username', 'first_name', 'last_name', 'password')
         model = User
 
 
 class TagSerializer(serializers.ModelSerializer):
+    """Сериалайзер для Тэга."""
     class Meta:
         fields = ('id', 'name', 'color', 'slug')
         model = Tag
 
 
 class ShortIngredientSerializer(serializers.ModelSerializer):
+    """Сериалайзер для короткого описания Ингридиента."""
     class Meta:
         fields = ('id', 'amount')
         model = Ingredient
 
 
 class AmountIngredientsSerializer(serializers.ModelSerializer):
+    """Сериалайзер для Ингридиентов с количеством."""
     id = serializers.PrimaryKeyRelatedField(
         source='ingredient', queryset=Ingredient.objects.all()
     )
@@ -53,12 +65,14 @@ class AmountIngredientsSerializer(serializers.ModelSerializer):
 
 
 class IngredientSerializer(serializers.ModelSerializer):
+    """Сериалайзер для Ингридиентов."""
     class Meta:
         model = Ingredient
         fields = '__all__'
 
 
 class RecipeSerializer(serializers.ModelSerializer):
+    """Сериалайзер для Рецептов."""
     tags = TagSerializer(many=True, read_only=True)
     author = UserSerializer(read_only=True)
     ingredients = serializers.SerializerMethodField()
@@ -98,6 +112,8 @@ class RecipeSerializer(serializers.ModelSerializer):
 
 
 class ShortRecipeSerializer(serializers.ModelSerializer):
+    """Сериалайзер для короткого описания Рецепта.
+    Отображается при добавлении Рецепта в Список покупок."""
     image = Base64ImageField()
 
     class Meta:
@@ -106,6 +122,7 @@ class ShortRecipeSerializer(serializers.ModelSerializer):
 
 
 class CreateIngredientsInRecipeSerializer(serializers.ModelSerializer):
+    """Сериалайзер для создания Ингридиентов"""
     recipe = serializers.PrimaryKeyRelatedField(read_only=True)
     id = serializers.PrimaryKeyRelatedField(
         source='ingredient', queryset=Ingredient.objects.all()
@@ -118,6 +135,7 @@ class CreateIngredientsInRecipeSerializer(serializers.ModelSerializer):
 
 
 class CreateRecipeSerializer(serializers.ModelSerializer):
+    """Сериалайзер для создания Рецепта."""
     ingredients = CreateIngredientsInRecipeSerializer(many=True)
     tags = serializers.PrimaryKeyRelatedField(many=True, queryset=Tag.objects.all())
     image = Base64ImageField()
@@ -186,6 +204,7 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
 
 
 class UserSubscriptionsSerializer(UserSerializer):
+    """Сериалайзер для тех, кто подписан на Пользователя."""
     recipes = serializers.SerializerMethodField()
     recipes_count = serializers.SerializerMethodField()
 
