@@ -71,13 +71,26 @@ class IngredientSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'measurement_unit')
 
 
+class CreateIngredientsInRecipeSerializer(serializers.ModelSerializer):
+    """Сериалайзер для создания Ингридиентов"""
+    recipe = serializers.PrimaryKeyRelatedField(read_only=True)
+    id = serializers.PrimaryKeyRelatedField(
+        source='ingredient', queryset=Ingredient.objects.all()
+    )
+    amount = serializers.IntegerField(write_only=True)
+
+    class Meta:
+        model = AmountIngredients
+        fields = ('recipe', 'id', 'amount')
+
+
 class RecipeSerializer(serializers.ModelSerializer):
     """Сериалайзер для Рецептов."""
-    tags = TagSerializer(many=True, read_only=True)
+    tags = serializers.PrimaryKeyRelatedField(many=True, queryset=Tag.objects.all())
     author = UserSerializer(read_only=True)
-    ingredients = serializers.SerializerMethodField()
-    is_favorited = serializers.SerializerMethodField()
-    is_in_shopping_cart = serializers.SerializerMethodField()
+    ingredients = IngredientSerializer(many=True)
+    is_favorited = serializers.SerializerMethodField(read_only=True)
+    is_in_shopping_cart = serializers.SerializerMethodField(read_only=True)
     image = Base64ImageField()
 
     class Meta:
@@ -107,43 +120,11 @@ class RecipeSerializer(serializers.ModelSerializer):
             return False
         return obj.cart_users.filter(username=request.user).exists()
 
-    def get_ingredients(self, obj):
-        return AmountIngredientsSerializer(obj.ingredients_amount.all(), many=True).data
-
-
-class ShortRecipeSerializer(serializers.ModelSerializer):
-    """Сериалайзер для короткого описания Рецепта.
-    Отображается при добавлении Рецепта в Список покупок."""
-    image = Base64ImageField()
-
-    class Meta:
-        fields = ('id', 'name', 'image', 'cooking_time')
-        model = Recipe
-
-
-class CreateIngredientsInRecipeSerializer(serializers.ModelSerializer):
-    """Сериалайзер для создания Ингридиентов"""
-    recipe = serializers.PrimaryKeyRelatedField(read_only=True)
-    id = serializers.PrimaryKeyRelatedField(
-        source='ingredient', queryset=Ingredient.objects.all()
-    )
-    amount = serializers.IntegerField(write_only=True)
-
-    class Meta:
-        model = AmountIngredients
-        fields = ('recipe', 'id', 'amount')
-
-
-class CreateRecipeSerializer(serializers.ModelSerializer):
-    """Сериалайзер для создания Рецепта."""
-    ingredients = CreateIngredientsInRecipeSerializer(many=True)
-    tags = serializers.PrimaryKeyRelatedField(many=True, queryset=Tag.objects.all())
-    image = Base64ImageField()
-    author = UserSerializer(required=False)
-
     def create(self, validated_data):
         ingredients = validated_data.pop('ingredients')
         tags = validated_data.pop('tags')
+        request = self.context['request']
+        validated_data['author'] = request.user
         recipe = Recipe.objects.create(**validated_data)
 
         recipe.tags.set(tags)
@@ -181,25 +162,14 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
 
         return super().update(instance=instance, validated_data=validated_data)
 
-    def to_representation(self, instance):
-        self.fields.pop('ingredients')
-        self.fields['tags'] = TagSerializer(many=True)
-        representation = super().to_representation(instance)
-        representation['ingredients'] = AmountIngredientsSerializer(
-            AmountIngredients.objects.filter(recipe=instance), many=True
-        ).data
-        return representation
+
+class ShortRecipeSerializer(serializers.ModelSerializer):
+    """Сериалайзер для короткого описания Рецепта.
+    Отображается при добавлении Рецепта в Список покупок."""
+    image = Base64ImageField()
 
     class Meta:
-        fields = (
-            'author',
-            'ingredients',
-            'tags',
-            'image',
-            'name',
-            'text',
-            'cooking_time',
-        )
+        fields = ('id', 'name', 'image', 'cooking_time')
         model = Recipe
 
 

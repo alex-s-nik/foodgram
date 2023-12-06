@@ -12,7 +12,7 @@ from recipes.models import Ingredient, Recipe, Tag
 
 from .mixins import M2MAddRemoveHelper
 from .pagination import PageLimitPagination
-from .serializers import (CreateRecipeSerializer, IngredientSerializer,
+from .serializers import (IngredientSerializer,
                           RecipeSerializer, ShortRecipeSerializer,
                           TagSerializer, UserSerializer,
                           UserSubscriptionsSerializer)
@@ -68,12 +68,7 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
 
 class RecipeViewSet(viewsets.ModelViewSet, M2MAddRemoveHelper):
     pagination_class = PageLimitPagination
-    serializer_classes = {
-        'list': RecipeSerializer,
-        'retrieve': RecipeSerializer,
-        'create': CreateRecipeSerializer,
-        'partial_update': CreateRecipeSerializer,
-    }
+    serializer_class = RecipeSerializer
 
     def get_serializer_class(self):
         try:
