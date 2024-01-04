@@ -11,6 +11,8 @@ services:
       context: ./backend
       dockerfile: ./Dockerfile
     restart: always
+    ports:
+      - "5432:5432"
     volumes:
       - static_value:/app/static/
       - media_value:/app/media/
