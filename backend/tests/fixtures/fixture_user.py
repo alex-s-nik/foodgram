@@ -1,5 +1,7 @@
 import pytest
 
+from users.factories import UserFactory
+
 
 @pytest.fixture
 def user_superuser(django_user_model):
@@ -101,3 +103,8 @@ def third_user_client(token_third_user):
     client = APIClient()
     client.credentials(HTTP_AUTHORIZATION=f'Token {token_third_user}')
     return client
+
+
+@pytest.fixture
+def ten_users():
+    return UserFactory.create_batch(10)
