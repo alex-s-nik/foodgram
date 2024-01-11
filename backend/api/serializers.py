@@ -25,6 +25,8 @@ class UserSerializer(BaseUserSerializer):
         model = User
 
     def get_is_subscribed(self, obj):
+        if 'request' not in self.context:
+            return False
         user = self.context['request'].user
         if user.is_anonymous:
             return False
@@ -97,12 +99,16 @@ class RecipeSerializer(serializers.ModelSerializer):
         model = Recipe
 
     def get_is_favorited(self, obj):
+        if 'request' not in self.context:
+            return False
         request = self.context['request']
         if request.user.is_anonymous:
             return False
         return obj.favorite_users.filter(username=request.user).exists()
 
     def get_is_in_shopping_cart(self, obj):
+        if 'request' not in self.context:
+            return False
         request = self.context['request']
         if request.user.is_anonymous:
             return False

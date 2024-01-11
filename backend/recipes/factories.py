@@ -1,5 +1,7 @@
 import factory
 
+
+from users.factories import UserFactory
 from .models import Ingredient, Recipe, Tag
 
 
@@ -33,10 +35,31 @@ class RecipeFactory(factory.django.DjangoModelFactory):
     MIN_COOKING_TIME = 10
     MAX_COOKING_TIME = 180
 
-    author = ...
+    author = factory.SubFactory(UserFactory)
     name = factory.Faker('word')
     image = factory.Faker('image', size=(1, 1))
     text = factory.Faker('text')
-    ingredients = ...
-    tags = ...
     cooking_time = factory.Faker('random_int', min=MIN_COOKING_TIME, max=MAX_COOKING_TIME)
+
+    @factory.post_generation
+    def tags(self, create, extracted, **kwargs):
+        if not create or not extracted:
+            return
+        self.tags.add(*extracted)
+
+    @factory.post_generation
+    def ingredients(self, create, extracted, **kwargs):
+        if not create or not extracted:
+            return
+        self.ingredients.add(*extracted)
+
+
+class AmountIngredientsFactory(factory.django.DjangoModelFactory):
+    """Фабрика Количества Ингридиентов."""
+
+    MIN_AMOUNT = 1
+    MAX_AMOUNT = 1000
+
+    recipe = factory.SubFactory(RecipeFactory)
+    ingredient = factory.SubFactory(IngredientFactory)
+    amount = factory.Faker('random_int', min=MIN_AMOUNT, max=MAX_AMOUNT)
