@@ -108,3 +108,8 @@ def third_user_client(token_third_user):
 @pytest.fixture
 def ten_users():
     return UserFactory.create_batch(10)
+
+
+@pytest.fixture
+def one_user():
+    return UserFactory.create()
