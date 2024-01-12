@@ -5,8 +5,9 @@ from faker import Faker
 
 from django.db.utils import IntegrityError
 
-from recipes.models import Ingredient, Tag
-from recipes.factories import IngredientFactory, TagFactory
+from recipes.models import Ingredient, Recipe, Tag
+from recipes.factories import IngredientFactory, RecipeFactory, TagFactory
+from users.factories import UserFactory
 
 
 class TestTag:
@@ -91,10 +92,30 @@ class TestIngredient:
 class TestRecipe:
     """Тестирование модели Рецепт."""
 
-    @pytest.mark.django_db()
-    def test_recipe_model(self):
-        """Создание экземпляра."""
-        ...
+    faked_data = Faker()
 
-    # test favorites
-    # test shopping cart
+    recipe_name = faked_data.word()
+    recipe_text = faked_data.text()
+    recipe_cooking_time = faked_data.random_int(min=1, max=180)
+
+    @pytest.mark.django_db()
+    def test_recipe_model(self, batch_of_tags, one_user):
+        """Создание экземпляра."""
+        recipes_before_start_test = Recipe.objects.count()
+        test_recipe = RecipeFactory.create(
+            author=one_user,
+            name=self.recipe_name,
+            text=self.recipe_text,
+            cooking_time=self.recipe_cooking_time,
+            tags=batch_of_tags,
+        )
+
+        recipe_count_after_test_completed = Recipe.objects.count()
+
+        assert recipes_before_start_test == recipe_count_after_test_completed - 1
+
+        assert test_recipe.name == self.recipe_name
+        assert test_recipe.text == self.recipe_text
+        assert test_recipe.cooking_time == self.recipe_cooking_time
+        assert test_recipe.author == one_user
+        assert test_recipe.tags.count() == len(batch_of_tags)
