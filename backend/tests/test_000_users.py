@@ -91,15 +91,14 @@ class TestUser:
 
 class TestSubscribers:
     @pytest.mark.django_db()
-    def test_subcribers(self, ten_users):
-        author = ten_users[0]
-        follower = ten_users[1]
+    def test_subcribers(self, batch_of_users):
+        author, follower = batch_of_users(2)
         author.subscribers.add(follower)
         assert len(author.subscribers.all()) == 1
 
     @pytest.mark.django_db()
-    def test_self_subscribing(self, ten_users):
-        author = ten_users[0]
+    def test_self_subscribing(self, one_user):
+        author = one_user
 
         with pytest.raises(IntegrityError):
             author.subscribers.add(author)

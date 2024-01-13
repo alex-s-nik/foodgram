@@ -5,6 +5,7 @@ from users.factories import UserFactory
 
 @pytest.fixture
 def user_superuser(django_user_model):
+    """Создание Суперпользователя."""
     return django_user_model.objects.create_superuser(
         username='TestSuperuser',
         email='testsuperuser@foodgram.fake',
@@ -14,6 +15,7 @@ def user_superuser(django_user_model):
 
 @pytest.fixture
 def token_superuser(user_superuser):
+    """Получение Токена для Суперпользователя."""
     from rest_framework.authtoken.models import Token
 
     token = Token.objects.create(user=user_superuser)
@@ -23,6 +25,7 @@ def token_superuser(user_superuser):
 
 @pytest.fixture
 def first_user(django_user_model):
+    """Создание Пользователя."""
     return django_user_model.objects.create_user(
         username='TestUser',
         password='1234567',
@@ -34,6 +37,7 @@ def first_user(django_user_model):
 
 @pytest.fixture
 def second_user(django_user_model):
+    """Создание еще одного Пользователя."""
     return django_user_model.objects.create_user(
         username='TestUser2',
         password='1234567',
@@ -45,6 +49,7 @@ def second_user(django_user_model):
 
 @pytest.fixture
 def third_user(django_user_model):
+    """Создание третьего Пользователя."""
     return django_user_model.objects.create_user(
         username='TestUser3',
         password='1234567',
@@ -56,6 +61,7 @@ def third_user(django_user_model):
 
 @pytest.fixture
 def token_first_user(first_user):
+    """Получение Токена для Пользователя."""
     from rest_framework.authtoken.models import Token
 
     token, _ = Token.objects.get_or_create(user=first_user)
@@ -64,6 +70,7 @@ def token_first_user(first_user):
 
 @pytest.fixture
 def token_second_user(second_user):
+    """Получение Токена для еще одного Пользователя."""
     from rest_framework.authtoken.models import Token
 
     token, _ = Token.objects.get_or_create(user=second_user)
@@ -72,6 +79,7 @@ def token_second_user(second_user):
 
 @pytest.fixture
 def token_third_user(third_user):
+    """Получение Токена для третьего Пользователя."""
     from rest_framework.authtoken.models import Token
 
     token, _ = Token.objects.get_or_create(user=third_user)
@@ -80,6 +88,7 @@ def token_third_user(third_user):
 
 @pytest.fixture
 def first_user_client(token_first_user):
+    """Получение клиента для Пользователя."""
     from rest_framework.test import APIClient
 
     client = APIClient()
@@ -89,6 +98,7 @@ def first_user_client(token_first_user):
 
 @pytest.fixture
 def second_user_client(token_second_user):
+    """Получение клиента для еще одного Пользователя."""
     from rest_framework.test import APIClient
 
     client = APIClient()
@@ -98,6 +108,7 @@ def second_user_client(token_second_user):
 
 @pytest.fixture
 def third_user_client(token_third_user):
+    """Получение клиента для третего Пользователя."""
     from rest_framework.test import APIClient
 
     client = APIClient()
@@ -106,10 +117,18 @@ def third_user_client(token_third_user):
 
 
 @pytest.fixture
-def ten_users():
-    return UserFactory.create_batch(10)
+def batch_of_users():
+    """Создание нескольких Пользователей.
+    По умолчанию 10.
+    """
+
+    def _wrapper(count: int = 10):
+        return UserFactory.create_batch(count)
+
+    return _wrapper
 
 
 @pytest.fixture
-def one_user():
+def one_user(batch_of_users):
+    """Создание одного Пользователя."""
     return UserFactory.create()
