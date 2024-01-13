@@ -92,6 +92,8 @@ class TestIngredient:
 class TestRecipe:
     """Тестирование модели Рецепт."""
 
+    RECIPE_COUNT_TAGS = 4
+
     faked_data = Faker()
 
     recipe_name = faked_data.word()
@@ -107,7 +109,7 @@ class TestRecipe:
             name=self.recipe_name,
             text=self.recipe_text,
             cooking_time=self.recipe_cooking_time,
-            tags=batch_of_tags,
+            tags=batch_of_tags(self.RECIPE_COUNT_TAGS),
         )
 
         recipe_count_after_test_completed = Recipe.objects.count()
@@ -118,4 +120,4 @@ class TestRecipe:
         assert test_recipe.text == self.recipe_text
         assert test_recipe.cooking_time == self.recipe_cooking_time
         assert test_recipe.author == one_user
-        assert test_recipe.tags.count() == len(batch_of_tags)
+        assert test_recipe.tags.count() == self.RECIPE_COUNT_TAGS
