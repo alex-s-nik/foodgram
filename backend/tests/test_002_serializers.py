@@ -1,7 +1,7 @@
 import pytest
 
 from api.serializers import IngredientSerializer, TagSerializer
-from recipes.factories import IngredientFactory, TagFactory
+from recipes.factories import TagFactory
 
 
 class TestSerializers:
@@ -18,6 +18,11 @@ class TestSerializers:
     @pytest.mark.django_db()
     def test_tag_serializer(self):
         """Сериалайзер Тэга."""
+        # здесь не берем фикстуру simple_tag в виду того, что
+        # объект уже будет в БД, и, при валидации сериалайзера
+        # с полями как у существующего объекта , сериалайзер не пройдет
+        # валидацию по причине уникальности полей создаваемого сериалайзером
+        # объекта
         tag = TagFactory.build()
         tag_data = {'name': tag.name, 'color': tag.color, 'slug': tag.slug}
 
@@ -32,12 +37,11 @@ class TestSerializers:
         assert tag_serializer_from_data.validated_data == tag_data
 
     @pytest.mark.django_db()
-    def test_ingredient_serializer(self):
+    def test_ingredient_serializer(self, simple_ingredient):
         """Сериалайзер Ингридиента."""
-        ingredient = IngredientFactory.build()
-        ingredient_data = {'name': ingredient.name, 'measurement_unit': ingredient.measurement_unit}
+        ingredient_data = {'name': simple_ingredient.name, 'measurement_unit': simple_ingredient.measurement_unit}
 
-        ingredient_serializer = IngredientSerializer(ingredient)
+        ingredient_serializer = IngredientSerializer(simple_ingredient)
         ingredient_serializer_data = ingredient_serializer.data
         del ingredient_serializer_data['id']
 
@@ -53,4 +57,3 @@ class TestSerializers:
 
     def test_recipe_serializer(self):
         """Сериалайзер Рецепта."""
-        ...
