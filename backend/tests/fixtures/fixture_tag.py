@@ -15,6 +15,6 @@ def batch_of_tags():
 
 
 @pytest.fixture
-def simple_tag(batch_of_tags):
+def simple_tag():
     """Создание одного Тега."""
     return TagFactory.create()
