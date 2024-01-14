@@ -72,7 +72,7 @@ class AmountIngredientsSerializer(serializers.ModelSerializer):
 class RecipeSerializer(serializers.ModelSerializer):
     """Сериалайзер для Рецептов."""
 
-    tags = serializers.PrimaryKeyRelatedField(many=True, queryset=Tag.objects.all())
+    tags = TagSerializer(many=True)
     author = UserSerializer(read_only=True)
     ingredients = AmountIngredientsSerializer(
         source='ingredients_amount',
