@@ -1,7 +1,9 @@
+import base64
+
 import pytest
 
-from api.serializers import IngredientSerializer, TagSerializer
-from recipes.factories import TagFactory
+from api.serializers import IngredientSerializer, RecipeSerializer, TagSerializer
+from recipes.factories import RecipeFactory, TagFactory
 
 
 class TestSerializers:
@@ -55,5 +57,35 @@ class TestSerializers:
         """Сериалайзер Количества ингридиента."""
         ...
 
-    def test_recipe_serializer(self):
+    @pytest.mark.django_db()
+    def test_recipe_serializer(self, simple_recipe, batch_of_tags):
         """Сериалайзер Рецепта."""
+        recipe = simple_recipe
+        recipe_tags = batch_of_tags(5)
+        recipe.tags.add(*recipe_tags)
+        recipe_image = base64.b64encode(recipe.image.file.read())
+
+        recipe_data = {
+            'id': recipe.id,
+            'tags': [TagSerializer(tag).data for tag in recipe_tags],
+            'author': {
+                'id': recipe.author.id,
+                'email': recipe.author.email,
+                'username': recipe.author.username,
+                'first_name': recipe.author.first_name,
+                'last_name': recipe.author.last_name,
+                'is_subscribed': False,
+            },
+            'ingredients': [],
+            'is_favorited': False,
+            'is_in_shopping_cart': False,
+            'name': recipe.name,
+            'image': recipe.image.url,
+            'text': recipe.text,
+            'cooking_time': recipe.cooking_time,
+        }
+        recipe_serializer = RecipeSerializer(recipe)
+        recipe_serializer_data = recipe_serializer.data
+
+        assert recipe_serializer_data == recipe_data
+        assert len(recipe_tags) == 5

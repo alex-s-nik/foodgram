@@ -1,8 +1,10 @@
+import random
+
 import factory
 
 
 from users.factories import UserFactory
-from .models import Ingredient, Recipe, Tag
+from .models import AmountIngredients, Ingredient, Recipe, Tag
 
 
 class TagFactory(factory.django.DjangoModelFactory):
@@ -43,17 +45,17 @@ class RecipeFactory(factory.django.DjangoModelFactory):
     text = factory.Faker('text')
     cooking_time = factory.Faker('random_int', min=MIN_COOKING_TIME, max=MAX_COOKING_TIME)
 
-    @factory.post_generation
-    def tags(self, create, extracted, **kwargs):
-        if not create or not extracted:
-            return
-        self.tags.add(*extracted)
+    ingredients = factory.RelatedFactoryList(
+        'recipes.factories.AmountIngredientsFactory',
+        factory_related_name='recipe',
+        size=random.randint(1, 20),
+    )
 
-    @factory.post_generation
-    def ingredients(self, create, extracted, **kwargs):
-        if not create or not extracted:
-            return
-        self.ingredients.add(*extracted)
+    tags = factory.RelatedFactoryList(
+        TagFactory,
+        # size=random.randint(1, 20),
+        size=6,
+    )
 
 
 # константы для AmountIngredientsFactory
@@ -63,6 +65,9 @@ MAX_AMOUNT = 1000
 
 class AmountIngredientsFactory(factory.django.DjangoModelFactory):
     """Фабрика Количества Ингридиентов."""
+
+    class Meta:
+        model = AmountIngredients
 
     recipe = factory.SubFactory(RecipeFactory)
     ingredient = factory.SubFactory(IngredientFactory)
