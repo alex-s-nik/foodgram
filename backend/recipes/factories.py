@@ -51,11 +51,16 @@ class RecipeFactory(factory.django.DjangoModelFactory):
         size=random.randint(1, 20),
     )
 
-    tags = factory.RelatedFactoryList(
-        TagFactory,
-        # size=random.randint(1, 20),
-        size=6,
-    )
+    @factory.post_generation
+    def tags(self, create, extracted, **kwargs):
+        if not create:
+            return
+        if extracted:
+            for tag in extracted:
+                self.tags.add(tag)
+        else:
+            for tag in TagFactory.create_batch(4):
+                self.tags.add(tag)
 
 
 # константы для AmountIngredientsFactory
