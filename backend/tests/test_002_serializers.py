@@ -1,13 +1,16 @@
 import base64
 
+from faker import Faker
 import pytest
 
-from api.serializers import IngredientSerializer, RecipeSerializer, TagSerializer
-from recipes.factories import RecipeFactory, TagFactory
+from api.serializers import AmountIngredientsSerializer, IngredientSerializer, RecipeSerializer, TagSerializer
+from recipes.factories import IngredientFactory, RecipeFactory, TagFactory
 
 
 class TestSerializers:
     """Тестирование сериалайзеров."""
+
+    faked_data = Faker()
 
     def test_user_serializer(self):
         """Сериалайзер Пользователя."""
@@ -58,16 +61,13 @@ class TestSerializers:
         ...
 
     @pytest.mark.django_db()
-    def test_recipe_serializer(self, simple_recipe, batch_of_tags):
+    def test_recipe_serializer(self, simple_recipe):
         """Сериалайзер Рецепта."""
         recipe = simple_recipe
-        recipe_tags = batch_of_tags(5)
-        recipe.tags.add(*recipe_tags)
-        recipe_image = base64.b64encode(recipe.image.file.read())
 
         recipe_data = {
             'id': recipe.id,
-            'tags': [TagSerializer(tag).data for tag in recipe_tags],
+            'tags': [TagSerializer(tag).data for tag in recipe.tags.all()],
             'author': {
                 'id': recipe.author.id,
                 'email': recipe.author.email,
@@ -76,7 +76,9 @@ class TestSerializers:
                 'last_name': recipe.author.last_name,
                 'is_subscribed': False,
             },
-            'ingredients': [],
+            'ingredients': [
+                AmountIngredientsSerializer(ingredient).data for ingredient in recipe.ingredients_amount.all()
+            ],
             'is_favorited': False,
             'is_in_shopping_cart': False,
             'name': recipe.name,
@@ -88,4 +90,30 @@ class TestSerializers:
         recipe_serializer_data = recipe_serializer.data
 
         assert recipe_serializer_data == recipe_data
-        assert len(recipe_tags) == 5
+
+        recipe_ingredients = IngredientFactory.create_batch(10)  # take randint ingredients
+        recipe_tags = TagFactory.create_batch(3)  # take randint ingredients
+        recipe_image_width = 100
+        recipe_image_height = 100
+        recipe_image_format = 'PNG'
+        recipe_image = self.faked_data.image(
+            size=(recipe_image_width, recipe_image_height), image_format=recipe_image_format
+        )
+        recipe_image_decoded_to_b64 = base64.b64encode(recipe_image).decode('utf-8')
+        recipe_image_decoded_str = f'data:image/{recipe_image_format};base64,{recipe_image_decoded_to_b64}'
+        recipe_name = self.faked_data.word()
+        recipe_text = self.faked_data.text()
+        recipe_cooking_time = self.faked_data.random_int(1, 180)
+
+        recipe_data_for_create = {
+            'ingredients': recipe_ingredients,
+            'tags': recipe_tags,
+            'image': recipe_image_decoded_str,
+            'name': recipe_name,
+            'text': recipe_text,
+            'cooking_time': recipe_cooking_time,
+        }
+
+        recipe_serializer_from_data = RecipeSerializer(data=recipe_data_for_create)
+        assert recipe_serializer_from_data.is_valid()
+        assert recipe_serializer_from_data.validated_data == recipe_data_for_create
