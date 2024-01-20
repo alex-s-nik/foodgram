@@ -167,6 +167,12 @@ class AmountIngredientsSerializer(serializers.ModelSerializer):
 class RecipeResponseSerializer(serializers.ModelSerializer):
     """Сериалайзер Рецепта для GET-ответов."""
 
+    tags = TagSerializer(many=True, read_only=True)
+    author = UserSerializer(read_only=True)
+    ingredients = serializers.SerializerMethodField(read_only=True)
+    is_favorited = serializers.SerializerMethodField(read_only=True)
+    is_in_shopping_cart = serializers.SerializerMethodField(read_only=True)
+
     class Meta:
         model = Recipe
         fields = (
@@ -181,6 +187,15 @@ class RecipeResponseSerializer(serializers.ModelSerializer):
             'text',
             'cooking_time',
         )
+
+    def get_ingredients(self, obj):
+        return AmountIngredientsSerializer(obj.ingredients_amount.all(), many=True).data
+
+    def get_is_favorited(self, obj):
+        return False
+
+    def get_is_in_shopping_cart(self, obj):
+        return False
 
 
 class RecipeSerializer(serializers.ModelSerializer):

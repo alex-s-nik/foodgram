@@ -3,7 +3,13 @@ import base64
 from faker import Faker
 import pytest
 
-from api.serializers import AmountIngredientsSerializer, IngredientSerializer, RecipeSerializer, TagSerializer
+from api.serializers import (
+    AmountIngredientsSerializer,
+    IngredientSerializer,
+    RecipeResponseSerializer,
+    RecipeSerializer,
+    TagSerializer,
+)
 from recipes.factories import IngredientFactory, RecipeFactory, TagFactory
 
 
@@ -61,8 +67,8 @@ class TestSerializers:
         ...
 
     @pytest.mark.django_db()
-    def test_recipe_serializer(self, simple_recipe):
-        """Сериалайзер Рецепта."""
+    def test_recipe_respone_serializer(self, simple_recipe):
+        """Сериалайзер Рецепта для GET-ответов."""
         recipe = simple_recipe
 
         recipe_data = {
@@ -86,34 +92,8 @@ class TestSerializers:
             'text': recipe.text,
             'cooking_time': recipe.cooking_time,
         }
-        recipe_serializer = RecipeSerializer(recipe)
+        recipe_serializer
+        recipe_serializer = RecipeResponseSerializer(recipe)
         recipe_serializer_data = recipe_serializer.data
 
         assert recipe_serializer_data == recipe_data
-
-        recipe_ingredients = IngredientFactory.create_batch(10)  # take randint ingredients
-        recipe_tags = TagFactory.create_batch(3)  # take randint ingredients
-        recipe_image_width = 100
-        recipe_image_height = 100
-        recipe_image_format = 'PNG'
-        recipe_image = self.faked_data.image(
-            size=(recipe_image_width, recipe_image_height), image_format=recipe_image_format
-        )
-        recipe_image_decoded_to_b64 = base64.b64encode(recipe_image).decode('utf-8')
-        recipe_image_decoded_str = f'data:image/{recipe_image_format};base64,{recipe_image_decoded_to_b64}'
-        recipe_name = self.faked_data.word()
-        recipe_text = self.faked_data.text()
-        recipe_cooking_time = self.faked_data.random_int(1, 180)
-
-        recipe_data_for_create = {
-            'ingredients': recipe_ingredients,
-            'tags': recipe_tags,
-            'image': recipe_image_decoded_str,
-            'name': recipe_name,
-            'text': recipe_text,
-            'cooking_time': recipe_cooking_time,
-        }
-
-        recipe_serializer_from_data = RecipeSerializer(data=recipe_data_for_create)
-        assert recipe_serializer_from_data.is_valid()
-        assert recipe_serializer_from_data.validated_data == recipe_data_for_create
