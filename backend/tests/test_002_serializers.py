@@ -1,4 +1,5 @@
 import base64
+import hashlib
 
 from faker import Faker
 import pytest
@@ -10,7 +11,8 @@ from api.serializers import (
     RecipeSerializer,
     TagSerializer,
 )
-from recipes.factories import IngredientFactory, RecipeFactory, TagFactory
+from recipes.factories import IngredientFactory, TagFactory
+from users.factories import UserFactory
 
 
 class TestSerializers:
@@ -66,6 +68,12 @@ class TestSerializers:
         """Сериалайзер Количества ингридиента."""
         ...
 
+
+class TestRecipeSerializer:
+    """Тестирование сериалайзеров Рецепта."""
+
+    faked_data = Faker()
+
     @pytest.mark.django_db()
     def test_recipe_respone_serializer(self, simple_recipe):
         """Сериалайзер Рецепта для GET-ответов."""
@@ -92,8 +100,74 @@ class TestSerializers:
             'text': recipe.text,
             'cooking_time': recipe.cooking_time,
         }
-        recipe_serializer
+
         recipe_serializer = RecipeResponseSerializer(recipe)
         recipe_serializer_data = recipe_serializer.data
 
         assert recipe_serializer_data == recipe_data
+
+    @pytest.mark.django_db()
+    def test_recipe_serializer(self):
+        """Основной сериалайзер Рецепта."""
+        ingredients_count = 10
+        ingredients = IngredientFactory.create_batch(ingredients_count)
+        recipe_ingredients = [
+            {'id': ingredient.id, 'amount': self.faked_data.random_int(min=1, max=180)} for ingredient in ingredients
+        ]
+
+        tags_count = 4
+        tags = TagFactory.create_batch(tags_count)
+        recipe_tags = [tag.id for tag in tags]
+
+        recipe_image_width = 200
+        recipe_image_height = 200
+        recipe_image_format = 'png'
+        recipe_image = self.faked_data.image(
+            size=(recipe_image_width, recipe_image_height), image_format=recipe_image_format
+        )
+        recipe_image_encoded = base64.b64encode(recipe_image).decode('utf-8')
+        recipe_image_encoded_for_serializer = f'data:image/{recipe_image_format};base64,{recipe_image_encoded}'
+
+        recipe_name = self.faked_data.word()
+        recipe_text = self.faked_data.text()
+        recipe_cooking_time = self.faked_data.random_int(min=1, max=180)
+
+        recipe_author = UserFactory.create()
+
+        recipe_data = {
+            'ingredients': recipe_ingredients,
+            'tags': recipe_tags,
+            'image': recipe_image_encoded_for_serializer,
+            'name': recipe_name,
+            'text': recipe_text,
+            'cooking_time': recipe_cooking_time,
+        }
+
+        class MockedRequest:
+            def __init__(self):
+                self.user = recipe_author
+
+        recipe_serializer = RecipeSerializer(data=recipe_data, context={'request': MockedRequest()})
+
+        assert recipe_serializer.is_valid()
+
+        recipe = recipe_serializer.save()
+        assert recipe.author == recipe_author
+        assert recipe.name == recipe_name
+        assert recipe.image.width == recipe_image_width
+        assert recipe.image.height == recipe_image_height
+
+        with open(recipe.image._file.name, 'rb') as f:
+            recipe_obj_image_hash = hashlib.md5(f.read()).hexdigest()
+        recipe_image_hash = hashlib.md5(recipe_image).hexdigest()
+
+        assert recipe_obj_image_hash == recipe_image_hash
+        assert recipe.text == recipe_text
+
+        assert recipe.ingredients.count() == ingredients_count
+        assert set(recipe.ingredients.all()) == set(ingredients)
+
+        assert recipe.tags.count() == tags_count
+        assert set(recipe.tags.all()) == set(tags)
+
+        assert recipe.cooking_time == recipe_cooking_time

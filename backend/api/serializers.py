@@ -201,12 +201,65 @@ class RecipeResponseSerializer(serializers.ModelSerializer):
 class RecipeSerializer(serializers.ModelSerializer):
     """Основной сериалайзер для Рецепта."""
 
+    image = Base64ImageField()
+
     class Meta:
         model = Recipe
         fields = ('ingredients', 'tags', 'image', 'name', 'text', 'cooking_time')
 
     def to_representation(self, instance):
         return RecipeResponseSerializer(context=self.context).to_representation(instance)
+
+    def validate(self, data):
+        ingredients = self.initial_data['ingredients']
+        ingredients_list = []
+        if not ingredients:
+            raise serializers.ValidationError('Количество ингридиентов должно быть больше 0.')
+        for ingredient in ingredients:
+            if not Ingredient.objects.filter(pk=ingredient['id']).exists():
+                raise serializers.ValidationError(f'Ингридиента с id = {ingredient["id"]} не существует.')
+            ingredients_list.append(
+                {'ingredient': Ingredient.objects.get(pk=ingredient['id']), 'amount': ingredient['amount']}
+            )
+        data['ingredients'] = ingredients_list
+
+        tag_ids = self.initial_data['tags']
+        tags_list = []
+
+        for tag_id in tag_ids:
+            try:
+                tag_id = int(tag_id)
+            except ValueError:
+                raise serializers.ValidationError('Id тэга должен быть целым числом.')
+            if not Tag.objects.filter(pk=tag_id).exists():
+                raise serializers.ValidationError(f'Тэга с id = {tag_id} не существует.')
+            tags_list.append(Tag.objects.get(pk=tag_id))
+        data['tags'] = tags_list
+
+        return data
+
+    def create(self, validated_data):
+        request = self.context['request']
+        validated_data['author'] = request.user
+
+        tags = validated_data.pop('tags')
+        ingredients = validated_data.pop('ingredients')
+        new_recipe = Recipe.objects.create(**validated_data)
+
+        for tag in tags:
+            new_recipe.tags.add(tag)
+
+        ingredients_with_amount_for_new_recipe = [
+            AmountIngredients(
+                recipe=new_recipe,
+                ingredient=ingredient['ingredient'],
+                amount=ingredient['amount'],
+            )
+            for ingredient in ingredients
+        ]
+        AmountIngredients.objects.bulk_create(ingredients_with_amount_for_new_recipe)
+
+        return new_recipe
 
 
 class ShortRecipeSerializer(serializers.ModelSerializer):
