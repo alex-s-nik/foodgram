@@ -69,7 +69,7 @@ class AmountIngredientsSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'measurement_unit', 'amount')
 
 
-class RecipeSerializer(serializers.ModelSerializer):
+'''class RecipeSerializer(serializers.ModelSerializer):
     """Сериалайзер для Рецептов."""
 
     tags = TagSerializer(many=True)
@@ -161,7 +161,37 @@ class RecipeSerializer(serializers.ModelSerializer):
             ]
             AmountIngredients.objects.bulk_create(create_ingredients)
 
-        return super().update(instance=instance, validated_data=validated_data)
+        return super().update(instance=instance, validated_data=validated_data)'''
+
+
+class RecipeResponseSerializer(serializers.ModelSerializer):
+    """Сериалайзер Рецепта для GET-ответов."""
+
+    class Meta:
+        model = Recipe
+        fields = (
+            'id',
+            'tags',
+            'author',
+            'ingredients',
+            'is_favorited',
+            'is_in_shopping_cart',
+            'name',
+            'image',
+            'text',
+            'cooking_time',
+        )
+
+
+class RecipeSerializer(serializers.ModelSerializer):
+    """Основной сериалайзер для Рецепта."""
+
+    class Meta:
+        model = Recipe
+        fields = ('ingredients', 'tags', 'image', 'name', 'text', 'cooking_time')
+
+    def to_representation(self, instance):
+        return RecipeResponseSerializer(context=self.context).to_representation(instance)
 
 
 class ShortRecipeSerializer(serializers.ModelSerializer):
