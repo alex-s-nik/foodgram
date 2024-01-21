@@ -40,21 +40,18 @@ class TestTag:
                 factory.Faker('color'),
                 factory.Faker('slug'),
                 id='non-unique-name',
-                marks=[pytest.mark.skip()],
             ),
             pytest.param(
                 factory.Faker('word'),
                 tag_color,
                 factory.Faker('slug'),
                 id='non-unique-color',
-                marks=[pytest.mark.skip()],
             ),
             pytest.param(
                 factory.Faker('word'),
                 factory.Faker('color'),
                 tag_slug,
                 id='non-unique-slug',
-                marks=[pytest.mark.skip()],
             ),
         ],
     )
