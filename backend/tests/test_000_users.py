@@ -13,80 +13,24 @@ class TestUser:
     faked_data = Faker()
 
     @pytest.mark.django_db()
-    @pytest.mark.parametrize(
-        'credentials, expectation',
-        [
-            pytest.param(
-                {
-                    'username': faked_data.user_name(),
-                    'first_name': faked_data.first_name(),
-                    'last_name': faked_data.last_name(),
-                    'email': faked_data.email(),
-                    'password': faked_data.password(),
-                },
-                does_not_raise(),
-                id='all required fields',
-            ),
-            pytest.param(
-                {
-                    'first_name': faked_data.first_name(),
-                    'last_name': faked_data.last_name(),
-                    'email': faked_data.email(),
-                    'password': faked_data.password(),
-                },
-                pytest.raises(TypeError),
-                id='without username',
-                marks=[pytest.mark.skip()],
-            ),
-            pytest.param(
-                {
-                    'username': faked_data.user_name(),
-                    'last_name': faked_data.last_name(),
-                    'email': faked_data.email(),
-                    'password': faked_data.password(),
-                },
-                pytest.raises(TypeError),
-                id='without first_name',
-                marks=[pytest.mark.skip()],
-            ),
-            pytest.param(
-                {
-                    'username': faked_data.user_name(),
-                    'first_name': faked_data.first_name(),
-                    'email': faked_data.email(),
-                    'password': faked_data.password(),
-                },
-                pytest.raises(TypeError),
-                id='without last_name',
-                marks=[pytest.mark.skip()],
-            ),
-            pytest.param(
-                {
-                    'username': faked_data.user_name(),
-                    'first_name': faked_data.first_name(),
-                    'last_name': faked_data.last_name(),
-                    'password': faked_data.password(),
-                },
-                pytest.raises(TypeError),
-                id='without email',
-                marks=[pytest.mark.skip()],
-            ),
-            pytest.param(
-                {
-                    'username': faked_data.user_name(),
-                    'first_name': faked_data.first_name(),
-                    'last_name': faked_data.last_name(),
-                    'email': faked_data.email(),
-                },
-                pytest.raises(TypeError),
-                id='without password',
-                marks=[pytest.mark.skip()],
-            ),
-        ],
-    )
-    def test_required_fields_for_registration_user(self, credentials, expectation):
-        with expectation:
-            User.objects.create_user(**credentials)
+    def test_user_model(self):
+        user_data = {
+            'username': self.faked_data.user_name(),
+            'first_name': self.faked_data.first_name(),
+            'last_name': self.faked_data.last_name(),
+            'email': self.faked_data.email(),
+            'password': self.faked_data.password(),
+        }
+        users_before_create_user = User.objects.count()
+        test_user = User.objects.create(**user_data)
+        user_after_create_user = User.objects.count()
+
+        assert user_after_create_user == users_before_create_user + 1
+
+        assert test_user.username == user_data['username']
+        assert test_user.first_name == user_data['first_name']
+        assert test_user.last_name == user_data['last_name']
+        assert test_user.email == user_data['email']
 
 
 class TestSubscribers:
