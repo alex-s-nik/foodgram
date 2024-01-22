@@ -10,6 +10,7 @@ from api.serializers import (
     RecipeResponseSerializer,
     RecipeSerializer,
     TagSerializer,
+    UserCreateSerializer,
 )
 from recipes.factories import IngredientFactory, TagFactory
 from users.factories import UserFactory
@@ -23,6 +24,85 @@ class TestSerializers:
     def test_user_serializer(self):
         """Сериалайзер Пользователя."""
         ...
+
+    @pytest.mark.parametrize(
+        'credentials, expectation, error',
+        [
+            pytest.param(
+                {
+                    'username': faked_data.user_name(),
+                    'first_name': faked_data.first_name(),
+                    'last_name': faked_data.last_name(),
+                    'email': faked_data.email(),
+                    'password': faked_data.password(),
+                },
+                True,
+                None,
+                id='all required fields',
+            ),
+            pytest.param(
+                {
+                    'first_name': faked_data.first_name(),
+                    'last_name': faked_data.last_name(),
+                    'email': faked_data.email(),
+                    'password': faked_data.password(),
+                },
+                False,
+                'username',
+                id='without username',
+            ),
+            pytest.param(
+                {
+                    'username': faked_data.user_name(),
+                    'last_name': faked_data.last_name(),
+                    'email': faked_data.email(),
+                    'password': faked_data.password(),
+                },
+                False,
+                'first_name',
+                id='without first_name',
+            ),
+            pytest.param(
+                {
+                    'username': faked_data.user_name(),
+                    'first_name': faked_data.first_name(),
+                    'email': faked_data.email(),
+                    'password': faked_data.password(),
+                },
+                False,
+                'last_name',
+                id='without last_name',
+            ),
+            pytest.param(
+                {
+                    'username': faked_data.user_name(),
+                    'first_name': faked_data.first_name(),
+                    'last_name': faked_data.last_name(),
+                    'password': faked_data.password(),
+                },
+                False,
+                'email',
+                id='without email',
+            ),
+            pytest.param(
+                {
+                    'username': faked_data.user_name(),
+                    'first_name': faked_data.first_name(),
+                    'last_name': faked_data.last_name(),
+                    'email': faked_data.email(),
+                },
+                False,
+                'password',
+                id='without password',
+            ),
+        ],
+    )
+    @pytest.mark.django_db()
+    def test_required_fields_for_registration_user(self, credentials, expectation, error):
+        user_serializer = UserCreateSerializer(data=credentials)
+        assert user_serializer.is_valid() == expectation
+        if not expectation:
+            assert error in user_serializer.errors
 
     def test_user_create_serializer(self):
         """Сериалайзер создания Пользователя."""
