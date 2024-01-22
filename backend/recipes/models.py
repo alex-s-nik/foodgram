@@ -26,6 +26,7 @@ class Ingredient(models.Model):
     measurement_unit = models.CharField(max_length=32, verbose_name='Единица измерения')
 
     class Meta:
+        indexes = (models.Index(fields=['name'], name='name_idx'),)
         verbose_name = 'Ингридиент'
         verbose_name_plural = 'Ингридиенты'
 
