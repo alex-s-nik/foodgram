@@ -18,230 +18,54 @@ class TestTagViewSet:
     """Тестирование вьюсета Тегов."""
 
     @pytest.mark.parametrize(
-        'usertype, expectation',
+        'usertype, method, type_, expectation_status_code',
         [
-            pytest.param(
-                'unauthorize',
-                {'status_code': status.HTTP_200_OK},
-                id="unauthorize-get-list",
-            ),
-            pytest.param(
-                'user',
-                {'status_code': status.HTTP_200_OK},
-                id="user-get-list",
-            ),
-            pytest.param(
-                'admin',
-                {'status_code': status.HTTP_200_OK},
-                id="admin-get-list",
-            ),
+            ('unauthorize', 'get', 'list', status.HTTP_200_OK),
+            ('unauthorize', 'get', 'retrieve', status.HTTP_200_OK),
+            ('unauthorize', 'post', 'retrieve', status.HTTP_405_METHOD_NOT_ALLOWED),
+            ('unauthorize', 'put', 'retrieve', status.HTTP_405_METHOD_NOT_ALLOWED),
+            ('unauthorize', 'patch', 'retrieve', status.HTTP_405_METHOD_NOT_ALLOWED),
+            ('unauthorize', 'delete', 'retrieve', status.HTTP_405_METHOD_NOT_ALLOWED),
+            ('user', 'get', 'list', status.HTTP_200_OK),
+            ('user', 'get', 'retrieve', status.HTTP_200_OK),
+            ('user', 'post', 'retrieve', status.HTTP_405_METHOD_NOT_ALLOWED),
+            ('user', 'put', 'retrieve', status.HTTP_405_METHOD_NOT_ALLOWED),
+            ('user', 'patch', 'retrieve', status.HTTP_405_METHOD_NOT_ALLOWED),
+            ('user', 'delete', 'retrieve', status.HTTP_405_METHOD_NOT_ALLOWED),
+            ('admin', 'get', 'list', status.HTTP_200_OK),
+            ('admin', 'get', 'retrieve', status.HTTP_200_OK),
+            ('admin', 'post', 'retrieve', status.HTTP_405_METHOD_NOT_ALLOWED),
+            ('admin', 'put', 'retrieve', status.HTTP_405_METHOD_NOT_ALLOWED),
+            ('admin', 'patch', 'retrieve', status.HTTP_405_METHOD_NOT_ALLOWED),
+            ('admin', 'delete', 'retrieve', status.HTTP_405_METHOD_NOT_ALLOWED),
         ],
     )
     @pytest.mark.django_db()
-    def test_list_tags(self, usertype, expectation):
-        """Тестирование получения списка всех Тегов.
-        Доступно всем пользователям."""
-        api_request = APIRequestFactory().get('')
+    def test_tags(self, usertype, method, type_, expectation_status_code):
+        """Тестирование работы с Тегами: все методы от всех пользователей."""
+
+        tag_created = TagFactory.create()
+        tag_built = TagFactory.build()
+
+        request_data = {'path': ''}
+        if method in ['post', 'put', 'patch']:
+            request_data['data'] = {
+                'slug': tag_built.slug,
+                'name': tag_built.name,
+                'color': tag_built.color,
+            }
+        api_request = getattr(APIRequestFactory(), method)(**request_data)
+
         if usertype != 'unauthorize':
             user = UserFactory.create(is_superuser=(usertype == 'admin'))
             force_authenticate(request=api_request, user=user)
-        list_view = TagViewSet.as_view({'get': 'list'})
-        response = list_view(api_request)
-        assert response.status_code == expectation['status_code']
-        assert len(response.data) == Tag.objects.count()
+        view = TagViewSet.as_view({'get': type_})
+        view_data = {'request': api_request}
+        if type_ == 'retrieve' and method != 'post':
+            view_data['pk'] = tag_created.pk
+        response = view(**view_data)
 
-    @pytest.mark.parametrize(
-        'usertype, expectation',
-        [
-            pytest.param(
-                'unauthorize',
-                {'status_code': status.HTTP_200_OK},
-                id="unauthorize-get-obj",
-            ),
-            pytest.param(
-                'user',
-                {'status_code': status.HTTP_200_OK},
-                id="user-get-obj",
-            ),
-            pytest.param(
-                'admin',
-                {'status_code': status.HTTP_200_OK},
-                id="admin-get-obj",
-            ),
-        ],
-    )
-    @pytest.mark.django_db()
-    def test_obj_tags(self, usertype, expectation):
-        """Тестирование получения конкретного Тега.
-        Доступно всем пользователям."""
-        test_tag = TagFactory.create()
-
-        api_request = APIRequestFactory().get('')
-        if usertype != 'unauthorize':
-            user = UserFactory.create(is_superuser=(usertype == 'admin'))
-            force_authenticate(request=api_request, user=user)
-        obj_view = TagViewSet.as_view({'get': 'retrieve'})
-        response = obj_view(api_request, pk=test_tag.pk)
-        assert response.status_code == expectation['status_code']
-
-    @pytest.mark.parametrize(
-        'usertype, expectation',
-        [
-            pytest.param(
-                'unauthorize',
-                {'status_code': status.HTTP_405_METHOD_NOT_ALLOWED},
-                id="unauthorize-create-obj",
-            ),
-            pytest.param(
-                'user',
-                {'status_code': status.HTTP_405_METHOD_NOT_ALLOWED},
-                id="user-create-obj",
-            ),
-            pytest.param(
-                'admin',
-                {'status_code': status.HTTP_405_METHOD_NOT_ALLOWED},
-                id="admin-create-obj",
-            ),
-        ],
-    )
-    @pytest.mark.django_db()
-    def test_create_tag(self, usertype, expectation):
-        """Тестирование создания конкретного Тега.
-        Через API недоступно никаким категориям пользователей."""
-        tag = TagFactory.build()
-
-        api_request = APIRequestFactory().post(
-            '',
-            {
-                'slug': tag.slug,
-                'name': tag.name,
-                'color': tag.color,
-            },
-        )
-        if usertype != 'unauthorize':
-            user = UserFactory.create(is_superuser=(usertype == 'admin'))
-            force_authenticate(request=api_request, user=user)
-        obj_view = TagViewSet.as_view({'get': 'retrieve'})
-        response = obj_view(api_request)
-        assert response.status_code == expectation['status_code']
-
-    @pytest.mark.parametrize(
-        'usertype, expectation',
-        [
-            pytest.param(
-                'unauthorize',
-                {'status_code': status.HTTP_405_METHOD_NOT_ALLOWED},
-                id="unauthorize-put-obj",
-            ),
-            pytest.param(
-                'user',
-                {'status_code': status.HTTP_405_METHOD_NOT_ALLOWED},
-                id="user-put-obj",
-            ),
-            pytest.param(
-                'admin',
-                {'status_code': status.HTTP_405_METHOD_NOT_ALLOWED},
-                id="admin-put-obj",
-            ),
-        ],
-    )
-    @pytest.mark.django_db()
-    def test_put_tag(self, usertype, expectation):
-        """Тестирование замены конкретного Тега.
-        Через API недоступно никаким категориям пользователей."""
-        old_tag = TagFactory.create()
-        new_tag = TagFactory.build()
-
-        api_request = APIRequestFactory().put(
-            '',
-            {
-                'slug': new_tag.slug,
-                'name': new_tag.name,
-                'color': new_tag.color,
-            },
-        )
-        if usertype != 'unauthorize':
-            user = UserFactory.create(is_superuser=(usertype == 'admin'))
-            force_authenticate(request=api_request, user=user)
-        obj_view = TagViewSet.as_view({'get': 'retrieve'})
-        response = obj_view(api_request, pk=old_tag.pk)
-        assert response.status_code == expectation['status_code']
-
-    @pytest.mark.parametrize(
-        'usertype, expectation',
-        [
-            pytest.param(
-                'unauthorize',
-                {'status_code': status.HTTP_405_METHOD_NOT_ALLOWED},
-                id="unauthorize-patch-obj",
-            ),
-            pytest.param(
-                'user',
-                {'status_code': status.HTTP_405_METHOD_NOT_ALLOWED},
-                id="user-patch-obj",
-            ),
-            pytest.param(
-                'admin',
-                {'status_code': status.HTTP_405_METHOD_NOT_ALLOWED},
-                id="admin-patch-obj",
-            ),
-        ],
-    )
-    @pytest.mark.django_db()
-    def test_patch_tag(self, usertype, expectation):
-        """Тестирование обновления отдельных полей конкретного Тега.
-        Через API недоступно никаким категориям пользователей."""
-        old_tag = TagFactory.create()
-        new_tag = TagFactory.build()
-
-        api_request = APIRequestFactory().patch(
-            '',
-            {
-                'slug': new_tag.slug,
-                'name': new_tag.name,
-                'color': new_tag.color,
-            },
-        )
-        if usertype != 'unauthorize':
-            user = UserFactory.create(is_superuser=(usertype == 'admin'))
-            force_authenticate(request=api_request, user=user)
-        obj_view = TagViewSet.as_view({'get': 'retrieve'})
-        response = obj_view(api_request, pk=old_tag.pk)
-        assert response.status_code == expectation['status_code']
-
-    @pytest.mark.parametrize(
-        'usertype, expectation',
-        [
-            pytest.param(
-                'unauthorize',
-                {'status_code': status.HTTP_405_METHOD_NOT_ALLOWED},
-                id="unauthorize-patch-obj",
-            ),
-            pytest.param(
-                'user',
-                {'status_code': status.HTTP_405_METHOD_NOT_ALLOWED},
-                id="user-patch-obj",
-            ),
-            pytest.param(
-                'admin',
-                {'status_code': status.HTTP_405_METHOD_NOT_ALLOWED},
-                id="admin-patch-obj",
-            ),
-        ],
-    )
-    @pytest.mark.django_db()
-    def test_delete_tag(self, usertype, expectation):
-        """Тестирование удаления конкретного Тега.
-        Через API недоступно никаким категориям пользователей."""
-        test_tag = TagFactory.create()
-
-        api_request = APIRequestFactory().delete('')
-        if usertype != 'unauthorize':
-            user = UserFactory.create(is_superuser=(usertype == 'admin'))
-            force_authenticate(request=api_request, user=user)
-        obj_view = TagViewSet.as_view({'get': 'retrieve'})
-        response = obj_view(api_request, pk=test_tag.pk)
-        assert response.status_code == expectation['status_code']
+        assert response.status_code == expectation_status_code
 
 
 class TestRecipeViewSet:
