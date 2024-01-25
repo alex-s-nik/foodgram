@@ -186,18 +186,20 @@ class TestRecipeSerializer:
 
         assert recipe_serializer_data == recipe_data
 
+    @pytest.mark.parametrize('with_tags', [True, False])
     @pytest.mark.django_db()
-    def test_recipe_serializer(self):
+    def test_recipe_serializer(self, with_tags):
         """Основной сериалайзер Рецепта."""
         ingredients_count = 10
         ingredients = IngredientFactory.create_batch(ingredients_count)
         recipe_ingredients = [
             {'id': ingredient.id, 'amount': self.faked_data.random_int(min=1, max=180)} for ingredient in ingredients
         ]
-
-        tags_count = 4
-        tags = TagFactory.create_batch(tags_count)
-        recipe_tags = [tag.id for tag in tags]
+        recipe_tags = []
+        if with_tags:
+            tags_count = 4
+            tags = TagFactory.create_batch(tags_count)
+            recipe_tags = [tag.id for tag in tags]
 
         recipe_image_width = 200
         recipe_image_height = 200
@@ -216,12 +218,12 @@ class TestRecipeSerializer:
 
         recipe_data = {
             'ingredients': recipe_ingredients,
-            'tags': recipe_tags,
             'image': recipe_image_encoded_for_serializer,
             'name': recipe_name,
             'text': recipe_text,
             'cooking_time': recipe_cooking_time,
         }
+        recipe_data['tags'] = recipe_tags
 
         class MockedRequest:
             def __init__(self):
@@ -229,8 +231,7 @@ class TestRecipeSerializer:
 
         recipe_serializer = RecipeSerializer(data=recipe_data, context={'request': MockedRequest()})
 
-        assert recipe_serializer.is_valid()
-
+        recipe_serializer.is_valid()
         recipe = recipe_serializer.save()
         assert recipe.author == recipe_author
         assert recipe.name == recipe_name
@@ -247,7 +248,8 @@ class TestRecipeSerializer:
         assert recipe.ingredients.count() == ingredients_count
         assert set(recipe.ingredients.all()) == set(ingredients)
 
-        assert recipe.tags.count() == tags_count
-        assert set(recipe.tags.all()) == set(tags)
+        if with_tags:
+            assert recipe.tags.count() == tags_count
+            assert set(recipe.tags.all()) == set(tags)
 
         assert recipe.cooking_time == recipe_cooking_time

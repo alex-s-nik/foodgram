@@ -111,17 +111,24 @@ class RecipeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Recipe
         fields = ('ingredients', 'tags', 'image', 'name', 'text', 'cooking_time')
+        extra_kwargs = {'tags': {'allow_empty': True}}
 
     def to_representation(self, instance):
         return RecipeResponseSerializer(context=self.context).to_representation(instance)
 
     def validate(self, data):
-        ingredients = self.initial_data['ingredients']
+        ingredients = self.initial_data.get('ingredients')
+        print(f'{self.initial_data=}')
+        print(f'{self.initial_data["ingredients"]=}')
+
         ingredients_list = []
+        print(ingredients, type(ingredients))
         if not ingredients:
             raise serializers.ValidationError('Количество ингридиентов должно быть больше 0.')
         for ingredient in ingredients:
-            if not Ingredient.objects.filter(pk=ingredient['id']).exists():
+            print(ingredient)
+            print(ingredient)
+            if not Ingredient.objects.filter(pk=int(ingredient['id'])).exists():
                 raise serializers.ValidationError(f'Ингридиента с id = {ingredient["id"]} не существует.')
             ingredients_list.append(
                 {'ingredient': Ingredient.objects.get(pk=ingredient['id']), 'amount': ingredient['amount']}
