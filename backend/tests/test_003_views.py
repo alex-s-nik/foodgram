@@ -5,6 +5,7 @@ from rest_framework.parsers import JSONParser
 from rest_framework.request import Request
 from rest_framework.test import APIRequestFactory, force_authenticate
 
+from api.utils import image_to_base64
 from api.views import RecipeViewSet, TagViewSet
 from recipes.models import Tag
 from recipes.factories import IngredientFactory, RecipeFactory, TagFactory
@@ -21,30 +22,30 @@ class TestTagViewSet:
     """Тестирование вьюсета Тегов."""
 
     @pytest.mark.parametrize(
-        'usertype, method, type_, expectation_status_code',
+        'usertype, method, action, expectation_status_code',
         [
-            ('unauthorize', 'get', 'list', status.HTTP_200_OK),
-            ('unauthorize', 'get', 'retrieve', status.HTTP_200_OK),
-            ('unauthorize', 'post', 'retrieve', status.HTTP_405_METHOD_NOT_ALLOWED),
-            ('unauthorize', 'put', 'retrieve', status.HTTP_405_METHOD_NOT_ALLOWED),
-            ('unauthorize', 'patch', 'retrieve', status.HTTP_405_METHOD_NOT_ALLOWED),
-            ('unauthorize', 'delete', 'retrieve', status.HTTP_405_METHOD_NOT_ALLOWED),
-            ('user', 'get', 'list', status.HTTP_200_OK),
-            ('user', 'get', 'retrieve', status.HTTP_200_OK),
-            ('user', 'post', 'retrieve', status.HTTP_405_METHOD_NOT_ALLOWED),
-            ('user', 'put', 'retrieve', status.HTTP_405_METHOD_NOT_ALLOWED),
-            ('user', 'patch', 'retrieve', status.HTTP_405_METHOD_NOT_ALLOWED),
-            ('user', 'delete', 'retrieve', status.HTTP_405_METHOD_NOT_ALLOWED),
-            ('admin', 'get', 'list', status.HTTP_200_OK),
-            ('admin', 'get', 'retrieve', status.HTTP_200_OK),
-            ('admin', 'post', 'retrieve', status.HTTP_405_METHOD_NOT_ALLOWED),
-            ('admin', 'put', 'retrieve', status.HTTP_405_METHOD_NOT_ALLOWED),
-            ('admin', 'patch', 'retrieve', status.HTTP_405_METHOD_NOT_ALLOWED),
-            ('admin', 'delete', 'retrieve', status.HTTP_405_METHOD_NOT_ALLOWED),
+            ('unauthorize', 'get', 'get', status.HTTP_200_OK),
+            ('unauthorize', 'get', 'get', status.HTTP_200_OK),
+            ('unauthorize', 'post', 'post', status.HTTP_405_METHOD_NOT_ALLOWED),
+            ('unauthorize', 'put', 'put', status.HTTP_405_METHOD_NOT_ALLOWED),
+            ('unauthorize', 'patch', 'patch', status.HTTP_405_METHOD_NOT_ALLOWED),
+            ('unauthorize', 'delete', 'delete', status.HTTP_405_METHOD_NOT_ALLOWED),
+            ('user', 'get', 'get', status.HTTP_200_OK),
+            ('user', 'get', 'get', status.HTTP_200_OK),
+            ('user', 'post', 'post', status.HTTP_405_METHOD_NOT_ALLOWED),
+            ('user', 'put', 'put', status.HTTP_405_METHOD_NOT_ALLOWED),
+            ('user', 'patch', 'patch', status.HTTP_405_METHOD_NOT_ALLOWED),
+            ('user', 'delete', 'delete', status.HTTP_405_METHOD_NOT_ALLOWED),
+            ('admin', 'get', 'get', status.HTTP_200_OK),
+            ('admin', 'get', 'get', status.HTTP_200_OK),
+            ('admin', 'post', 'post', status.HTTP_405_METHOD_NOT_ALLOWED),
+            ('admin', 'put', 'put', status.HTTP_405_METHOD_NOT_ALLOWED),
+            ('admin', 'patch', 'patch', status.HTTP_405_METHOD_NOT_ALLOWED),
+            ('admin', 'delete', 'delete', status.HTTP_405_METHOD_NOT_ALLOWED),
         ],
     )
     @pytest.mark.django_db()
-    def test_tags(self, usertype, method, type_, expectation_status_code):
+    def test_tags(self, usertype, method, action, expectation_status_code):
         """Тестирование работы с Тегами: все методы от всех пользователей."""
 
         tag_created = TagFactory.create()
@@ -62,9 +63,9 @@ class TestTagViewSet:
         if usertype != 'unauthorize':
             user = UserFactory.create(is_superuser=(usertype == 'admin'))
             force_authenticate(request=api_request, user=user)
-        view = TagViewSet.as_view({'get': type_})
+        view = TagViewSet.as_view({'get': action})
         view_data = {'request': api_request}
-        if type_ == 'retrieve' and method != 'post':
+        if action == 'retrieve' and method != 'post':
             view_data['pk'] = tag_created.pk
         response = view(**view_data)
 
@@ -75,133 +76,94 @@ class TestRecipeViewSet:
     """Тестирование вьюсета Рецептов."""
 
     @pytest.mark.parametrize(
-        'usertype, who_created, method, type_, expectation_status_code',
+        'usertype, who_created, method, action, expectation_status_code',
         [
             ('unauthorize', 'not_self', 'get', 'list', status.HTTP_200_OK),
             ('unauthorize', 'not_self', 'get', 'retrieve', status.HTTP_200_OK),
-            ('unauthorize', 'not_self', 'post', 'retrieve', status.HTTP_401_UNAUTHORIZED),
-            ('unauthorize', 'not_self', 'put', 'retrieve', status.HTTP_401_UNAUTHORIZED),
-            ('unauthorize', 'not_self', 'patch', 'retrieve', status.HTTP_401_UNAUTHORIZED),
-            ('unauthorize', 'not_self', 'delete', 'retrieve', status.HTTP_401_UNAUTHORIZED),
+            ('unauthorize', 'not_self', 'post', 'create', status.HTTP_401_UNAUTHORIZED),
+            ('unauthorize', 'not_self', 'put', 'update', status.HTTP_401_UNAUTHORIZED),
+            ('unauthorize', 'not_self', 'patch', 'partial_update', status.HTTP_401_UNAUTHORIZED),
+            ('unauthorize', 'not_self', 'delete', 'destroy', status.HTTP_401_UNAUTHORIZED),
             ('user', 'self', 'get', 'list', status.HTTP_200_OK),
             ('user', 'self', 'get', 'retrieve', status.HTTP_200_OK),
-            ('user', 'self', 'post', 'retrieve', status.HTTP_201_CREATED),
-            ('user', 'self', 'put', 'retrieve', status.HTTP_200_OK),
-            ('user', 'self', 'patch', 'retrieve', status.HTTP_200_OK),
-            ('user', 'self', 'delete', 'retrieve', status.HTTP_204_NO_CONTENT),
+            ('user', 'self', 'post', 'create', status.HTTP_201_CREATED),
+            ('user', 'self', 'put', 'update', status.HTTP_200_OK),
+            ('user', 'self', 'patch', 'partial_update', status.HTTP_200_OK),
+            ('user', 'self', 'delete', 'destroy', status.HTTP_204_NO_CONTENT),
             ('user', 'not_self', 'get', 'list', status.HTTP_200_OK),
             ('user', 'not_self', 'get', 'retrieve', status.HTTP_200_OK),
-            ('user', 'not_self', 'put', 'retrieve', status.HTTP_401_UNAUTHORIZED),
-            ('user', 'not_self', 'patch', 'retrieve', status.HTTP_401_UNAUTHORIZED),
-            ('user', 'not_self', 'delete', 'retrieve', status.HTTP_401_UNAUTHORIZED),
+            ('user', 'not_self', 'put', 'update', status.HTTP_401_UNAUTHORIZED),
+            ('user', 'not_self', 'patch', 'partial_update', status.HTTP_401_UNAUTHORIZED),
+            ('user', 'not_self', 'delete', 'destroy', status.HTTP_401_UNAUTHORIZED),
             ('admin', 'self', 'get', 'list', status.HTTP_200_OK),
             ('admin', 'self', 'get', 'retrieve', status.HTTP_200_OK),
-            ('admin', 'self', 'post', 'retrieve', status.HTTP_201_CREATED),
-            ('admin', 'self', 'put', 'retrieve', status.HTTP_200_OK),
-            ('admin', 'self', 'patch', 'retrieve', status.HTTP_200_OK),
-            ('admin', 'self', 'delete', 'retrieve', status.HTTP_204_NO_CONTENT),
+            ('admin', 'self', 'post', 'create', status.HTTP_201_CREATED),
+            ('admin', 'self', 'put', 'update', status.HTTP_200_OK),
+            ('admin', 'self', 'patch', 'partial_update', status.HTTP_200_OK),
+            ('admin', 'self', 'delete', 'destroy', status.HTTP_204_NO_CONTENT),
             ('admin', 'not_self', 'get', 'list', status.HTTP_200_OK),
             ('admin', 'not_self', 'get', 'retrieve', status.HTTP_200_OK),
-            ('admin', 'not_self', 'put', 'retrieve', status.HTTP_200_OK),
-            ('admin', 'not_self', 'patch', 'retrieve', status.HTTP_200_OK),
-            ('admin', 'not_self', 'delete', 'retrieve', status.HTTP_204_NO_CONTENT),
+            ('admin', 'not_self', 'put', 'update', status.HTTP_200_OK),
+            ('admin', 'not_self', 'patch', 'partial_update', status.HTTP_200_OK),
+            ('admin', 'not_self', 'delete', 'destroy', status.HTTP_204_NO_CONTENT),
         ],
     )
     @pytest.mark.django_db()
-    def test_recipe(self, usertype, who_created, method, type_, expectation_status_code):
-        recipe_built = RecipeFactory.build()
-        recipe_created = RecipeFactory.create()
+    def test_recipe(self, usertype, who_created, method, action, expectation_status_code):
+        """Тест всех возможностей: CRUD анонимно, CRUD зарегистрированного пользователя,
+        CRUD админа, а также RUD Рецептов, автором которых не является текущий пользователь.
 
+        Параметры:
+        usertype: unauthorize - гость, user - зарегистрированный пользователь, admin - администратор
+        who_created: с каким объектом работаем, self - созданный самим, not_self - созданный другим пользователем
+        method, action: метод и действие для запроса
+        expectation_status_code: ожидаемый статус-код результата запроса.
+        """
+
+        # объект с набором сгенерированных полей
+        recipe_built = RecipeFactory.build()
+
+        # объект, созданный другим пользователем
+        recipe_non_self_created = RecipeFactory.create()
+
+        # формируем параметры для RequestFactory.
+        # Если запрос идет к конкретному объекту, то параметры будут path, data и content_type,
+        # если же запрос на создание и получение списка, то параметром будет только path.
         request_data = {'path': ''}
+
+        # формирование data и content_type
         if method in ['post', 'put', 'patch']:
+            ingredients = [{'id': ingredient.id, 'amount': 20} for ingredient in IngredientFactory.create_batch(3)]
             request_data['data'] = {
                 'name': recipe_built.name,
-                'image': recipe_built.image,
+                'image': image_to_base64(recipe_built.image.file.read(), 'jpg'),
                 'text': recipe_built.text,
                 'cooking_time': recipe_built.cooking_time,
+                'ingredients': ingredients,
+                'tags': [],
             }
+            request_data['data'] = json.dumps(request_data['data'])
+            request_data['content_type'] = 'application/json'
+
         api_request = getattr(APIRequestFactory(), method)(**request_data)
+
         if usertype != 'unauthorize':
             user = UserFactory.create(is_superuser=(usertype == 'admin'))
+            recipe_self_created = RecipeFactory.create(author=user)
             force_authenticate(request=api_request, user=user)
-        view = RecipeViewSet.as_view({'get': type_})
+
+        view = RecipeViewSet.as_view({method: action})
+
         view_data = {'request': api_request}
-        if type_ == 'retrieve' and method != 'post':
-            view_data['pk'] = recipe_created.pk
+        if (method == 'get' and action == 'retrieve') or method in ['put', 'patch', 'delete']:
+            if who_created == 'self':
+                view_data['pk'] = recipe_self_created.pk
+            elif who_created == 'not_self':
+                view_data['pk'] = recipe_non_self_created.pk
+
         response = view(**view_data)
 
         assert response.status_code == expectation_status_code
-
-    @pytest.mark.django_db()
-    def test_create_recipe(self):
-        recipe_built = RecipeFactory.build()
-        ingredients = [{'id': ingredient.id, 'amount': 20} for ingredient in IngredientFactory.create_batch(3)]
-        print(ingredients)
-        print(f'{recipe_built.name=}')
-        '''{
-            'name': recipe_built.name,
-            'image': recipe_built.image,
-            'text': recipe_built.text,
-            'cooking_time': recipe_built.cooking_time,
-            'ingredients': ingredients,
-        },'''
-        factory = APIRequestFactory()
-        data = {
-            "name": "asdfas",
-            "image": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAgMAAABieywaAAAACVBMVEUAAAD///9fX1/S0ecCAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAACklEQVQImWNoAAAAggCByxOyYQAAAABJRU5ErkJggg==",
-            "text": "gdfgsdf",
-            "cooking_time": 15,
-            "ingredients": [{"id": 1, "amount": 20}, {"id": 2, "amount": 20}],
-            "tags": [],
-        }
-
-        '''api_request = factory.post(
-            '/',
-            data=data
-            # content_type='application/json',
-        )'''
-        # request = Request(api_request)
-        json_data = json.dumps(data)  # data must be converted to string for POST requests
-        request = factory.post('', data=json_data, content_type='application/json')
-
-        print(f'{request.POST=}')
-        print(f'{request.__dir__()=}')
-        print(f'{request.META=}')
-        user = UserFactory.create()
-        force_authenticate(request=request, user=user)
-        view = RecipeViewSet.as_view({'post': 'create'})
-        response = view(request=request)
-        response.render()
-        print(response.data)
-        assert response.status_code == status.HTTP_201_CREATED
-
-    @pytest.mark.django_db()
-    def test_create_recipe1(self):
-        recipe_built = RecipeFactory.build()
-        ingredients = [{'id': ingredient.id, 'amount': 20} for ingredient in IngredientFactory.create_batch(3)]
-
-        factory = APIRequestFactory()
-        data = {
-            "name": recipe_built.name,
-            "image": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAgMAAABieywaAAAACVBMVEUAAAD///9fX1/S0ecCAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAACklEQVQImWNoAAAAggCByxOyYQAAAABJRU5ErkJggg==",
-            "text": recipe_built.text,
-            "cooking_time": recipe_built.cooking_time,
-            "ingredients": ingredients,
-            "tags": [],
-        }
-
-        json_data = json.dumps(data)
-        request = factory.post('', data=json_data, content_type='application/json')
-
-        print(f'{request.POST=}')
-        print(f'{request.__dir__()=}')
-        print(f'{request.META=}')
-        user = UserFactory.create()
-        force_authenticate(request=request, user=user)
-        view = RecipeViewSet.as_view({'post': 'create'})
-        response = view(request=request)
-        print(response.data)
-        assert response.status_code == status.HTTP_201_CREATED
 
 
 class TestIngredientViewSet:

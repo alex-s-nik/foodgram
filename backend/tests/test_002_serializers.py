@@ -231,7 +231,7 @@ class TestRecipeSerializer:
 
         recipe_serializer = RecipeSerializer(data=recipe_data, context={'request': MockedRequest()})
 
-        recipe_serializer.is_valid()
+        assert recipe_serializer.is_valid()
         recipe = recipe_serializer.save()
         assert recipe.author == recipe_author
         assert recipe.name == recipe_name
