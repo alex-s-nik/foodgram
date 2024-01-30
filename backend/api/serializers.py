@@ -111,17 +111,20 @@ class RecipeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Recipe
         fields = ('ingredients', 'tags', 'image', 'name', 'text', 'cooking_time')
+        extra_kwargs = {'tags': {'allow_empty': True}}
 
     def to_representation(self, instance):
         return RecipeResponseSerializer(context=self.context).to_representation(instance)
 
     def validate(self, data):
-        ingredients = self.initial_data['ingredients']
+        ingredients = self.initial_data.get('ingredients')
+
         ingredients_list = []
+
         if not ingredients:
             raise serializers.ValidationError('Количество ингридиентов должно быть больше 0.')
         for ingredient in ingredients:
-            if not Ingredient.objects.filter(pk=ingredient['id']).exists():
+            if not Ingredient.objects.filter(pk=int(ingredient['id'])).exists():
                 raise serializers.ValidationError(f'Ингридиента с id = {ingredient["id"]} не существует.')
             ingredients_list.append(
                 {'ingredient': Ingredient.objects.get(pk=ingredient['id']), 'amount': ingredient['amount']}
@@ -165,6 +168,35 @@ class RecipeSerializer(serializers.ModelSerializer):
         AmountIngredients.objects.bulk_create(ingredients_with_amount_for_new_recipe)
 
         return new_recipe
+
+    def update(self, instance, validated_data):
+        if 'tags' in validated_data:
+            tags = validated_data.pop('tags')
+            instance.tags.clear()
+
+            for tag in tags:
+                instance.tags.add(tag)
+        if 'ingredients' in validated_data:
+            ingredients = validated_data.pop('ingredients')
+            old_ingredients = AmountIngredients.objects.filter(recipe=instance)
+            old_ingredients.delete()
+            ingredients_with_amount_for_updated_recipe = [
+                AmountIngredients(
+                    recipe=instance,
+                    ingredient=ingredient['ingredient'],
+                    amount=ingredient['amount'],
+                )
+                for ingredient in ingredients
+            ]
+
+        AmountIngredients.objects.bulk_create(ingredients_with_amount_for_updated_recipe)
+
+        instance.name = validated_data.get('name', instance.name)
+        instance.image = validated_data.get('image', instance.image)
+        instance.text = validated_data.get('text', instance.text)
+        instance.cooking_time = validated_data.get('cooking_time', instance.cooking_time)
+        instance.save()
+        return instance
 
 
 class ShortRecipeSerializer(serializers.ModelSerializer):
